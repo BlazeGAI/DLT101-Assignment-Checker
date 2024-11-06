@@ -147,9 +147,10 @@ if uploaded_file:
         )
         checklist_data["Completed"].append("Yes" if all_borders_applied else "No")
 
-        # Check ChatGPT link is merged and centered in row 35
-        chatgpt_row_merged = sheet['A35'].alignment.horizontal == 'center' and sheet['A35'].is_merged
-        checklist_data["Completed"].append("Yes" if chatgpt_row_merged else "No")
+        # Check if cells in row 35 are merged and center-aligned
+        merged_in_row_35 = any("A35" in str(range) for range in sheet.merged_cells.ranges)
+        center_aligned = sheet['A35'].alignment.horizontal == 'center' if merged_in_row_35 else False
+        checklist_data["Completed"].append("Yes" if merged_in_row_35 and center_aligned else "No")
 
         # Check if row 35 has a background color
         background_color_present = sheet['A35'].fill is not None and sheet['A35'].fill.fill_type is not None
