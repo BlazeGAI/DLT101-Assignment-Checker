@@ -11,6 +11,7 @@ uploaded_file = st.file_uploader("Upload your Excel file", type=["xlsx"])
 if uploaded_file:
     try:
         # Load the Excel file with openpyxl
+        workbook = load_workbook(uploaded_file)
         sheet_names = workbook.sheetnames
         alumni_sheet_present = (sheet_names[0] == "Alumni")
         
@@ -33,7 +34,7 @@ if uploaded_file:
         checklist_data["Completed"].append("Yes" if alumni_sheet_present else "No")
         
         # Load the sheet based on the name or default to first sheet if name mismatch
-        sheet = workbook[sheet_names[0] if alumni_sheet_present else sheet_names[0]]
+        sheet = workbook[sheet_names[0]] if alumni_sheet_present else workbook[sheet_names[0]]
         
         # Read the sheet into a DataFrame for column checking and data analysis
         alumni_df = pd.DataFrame(sheet.values)
