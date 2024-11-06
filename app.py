@@ -114,4 +114,18 @@ if uploaded_file:
         checklist_data["Completed"].append("Yes" if summary_present else "No")
         
         # Check for ChatGPT link specifically in row 35
-        chatgpt_link_row = 
+        chatgpt_link_row = 35
+        if chatgpt_link_row <= sheet.max_row:
+            chatgpt_link_cell = sheet.cell(row=chatgpt_link_row, column=1)
+            link_present = 'ChatGPT Link' in str(chatgpt_link_cell.value or "")
+        else:
+            link_present = False
+        checklist_data["Completed"].append("Yes" if link_present else "No")
+        
+        # Display checklist table
+        st.subheader("Checklist Results")
+        checklist_df = pd.DataFrame(checklist_data)
+        st.table(checklist_df)
+        
+    except Exception as e:
+        st.error(f"An error occurred: {e}")
