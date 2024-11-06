@@ -64,7 +64,7 @@ if uploaded_file:
         checklist_data["Completed"].append("Yes" if columns_match else "No")
 
         # Check if ID column contains unique four-digit numbers starting at 1001
-        id_column_valid = alumni_df['ID'].astype(str).str.match(r'\d{4}').all() and alumni_df['ID'].iloc[0] == 1001
+        id_column_valid = alumni_df['ID'].astype(str).str.match(r'\d{4}').all() and int(alumni_df['ID'].iloc[0]) == 1001
         checklist_data["Completed"].append("Yes" if id_column_valid else "No")
         
         # Check if Graduation Year calculation formula is in column H
@@ -92,7 +92,7 @@ if uploaded_file:
         checklist_data["Completed"].append("Yes" if columns_match else "No")
 
         # Check sorting by Graduation Year
-        graduation_year_sorted = alumni_df['Graduation Year'].is_monotonic_increasing
+        graduation_year_sorted = alumni_df['Graduation Year'].astype(float).is_monotonic_increasing
         checklist_data["Completed"].append("Yes" if graduation_year_sorted else "No")
 
         # Check different row styles based on Graduation Year (simple approach)
@@ -103,7 +103,7 @@ if uploaded_file:
         checklist_data["Completed"].append("Yes" if different_styles else "No")
 
         # Check sorting by Salary
-        salary_sorted = alumni_df['Salary'].is_monotonic
+        salary_sorted = alumni_df['Salary'].astype(float).is_monotonic
         checklist_data["Completed"].append("Yes" if salary_sorted else "No")
 
         # Check center alignment for numeric columns
