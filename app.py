@@ -188,5 +188,26 @@ if uploaded_file:
         checklist_df = pd.DataFrame(checklist_data)
         st.table(checklist_df)
 
+        # Calculate percentage complete
+        total_yes = checklist_data["Completed"].count("Yes")
+        total_items = len(checklist_data["Completed"])
+        percentage_complete = (total_yes / total_items) * 100
+        
+        # Display checklist table
+        st.subheader("Checklist Results")
+        checklist_df = pd.DataFrame(checklist_data)
+        st.table(checklist_df)
+        
+        # Display percentage complete
+        st.markdown(f"### Completion Score: {percentage_complete:.1f}%")
+
+        # Add color coding for percentage
+        if percentage_complete == 100:
+            st.success(f"### Completion Score: {percentage_complete:.1f}%")
+        elif percentage_complete >= 80:
+            st.warning(f"### Completion Score: {percentage_complete:.1f}%")
+        else:
+            st.error(f"### Completion Score: {percentage_complete:.1f}%")
+
     except Exception as e:
         st.error(f"An error occurred: {e}")
