@@ -117,19 +117,19 @@ if uploaded_file:
         checklist_data["Completed"].append("Yes" if numeric_columns_aligned else "No")
 
         # Check total Salary in H32 is bold
-        total_salary_bold = sheet['H32'].font.bold
+        total_salary_bold = sheet['H32'].font.bold if sheet['H32'].value else False
         checklist_data["Completed"].append("Yes" if total_salary_bold else "No")
 
         # Check average Salary in H33 is bold
-        average_salary_bold = sheet['H33'].font.bold
+        average_salary_bold = sheet['H33'].font.bold if sheet['H33'].value else False
         checklist_data["Completed"].append("Yes" if average_salary_bold else "No")
 
         # Check total Income Earned in I32 is bold
-        total_income_bold = sheet['I32'].font.bold
+        total_income_bold = sheet['I32'].font.bold if sheet['I32'].value else False
         checklist_data["Completed"].append("Yes" if total_income_bold else "No")
 
         # Check average Income Earned in I33 is bold
-        average_income_bold = sheet['I33'].font.bold
+        average_income_bold = sheet['I33'].font.bold if sheet['I33'].value else False
         checklist_data["Completed"].append("Yes" if average_income_bold else "No")
 
         # Check if headers are bold
@@ -148,8 +148,8 @@ if uploaded_file:
         checklist_data["Completed"].append("Yes" if all_borders_applied else "No")
 
         # Check ChatGPT link is merged and centered in row 35
-        merged_and_centered = sheet['A35'].alignment.horizontal == 'center' and sheet['A35'].is_merged
-        checklist_data["Completed"].append("Yes" if merged_and_centered else "No")
+        chatgpt_row_merged = sheet['A35'].alignment.horizontal == 'center' and sheet['A35'].is_merged
+        checklist_data["Completed"].append("Yes" if chatgpt_row_merged else "No")
 
         # Check if row 35 has a background color
         background_color_present = sheet['A35'].fill is not None and sheet['A35'].fill.fill_type is not None
