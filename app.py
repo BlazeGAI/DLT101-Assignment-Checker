@@ -1,7 +1,7 @@
 import streamlit as st
 import pandas as pd
 from openpyxl import load_workbook
-from openpyxl.styles import Alignment, Border, Side, Font, PatternFill
+from openpyxl.styles import Alignment, Font, PatternFill
 
 st.title("Alumni Sheet Checker")
 
