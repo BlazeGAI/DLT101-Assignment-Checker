@@ -1,7 +1,6 @@
 import streamlit as st
 import pandas as pd
 from openpyxl import load_workbook
-from openpyxl.utils import get_column_letter
 from openpyxl.styles import Alignment, Border, Side, Font, PatternFill
 
 st.title("Alumni Sheet Checker")
@@ -108,8 +107,65 @@ if uploaded_file:
         graduation_year_sorted = graduation_year_values.is_monotonic_increasing
         checklist_data["Completed"].append("Yes" if graduation_year_sorted else "No")
 
-        # Continue with the rest of the checklist items as before
-        # ...
+        # Check different row styles based on Graduation Year
+        different_styles = any(
+            sheet.cell(row=row, column=1).fill != sheet.cell(row=row+1, column=1).fill
+            for row in range(2, max_row - 1)
+        )
+        checklist_data["Completed"].append("Yes" if different_styles else "No")
+
+        # Check sorting by Salary
+        salary_values = pd.to_numeric(alumni_df['Salary'], errors='coerce').dropna()
+        salary_sorted = salary_values.is_monotonic_increasing
+        checklist_data["Completed"].append("Yes" if salary_sorted else "No")
+
+        # Check center alignment for numeric columns
+        numeric_columns_aligned = all(
+            sheet.cell(row=row, column=col).alignment.horizontal == 'center'
+            for col in [1, 7, 8, 9]
+            for row in range(2, max_row)
+        )
+        checklist_data["Completed"].append("Yes" if numeric_columns_aligned else "No")
+
+        # Check total Salary in H32 is bold and contains a formula
+        total_salary_bold = sheet['H32'].font.bold if sheet['H32'].data_type == 'f' else False
+        checklist_data["Completed"].append("Yes" if total_salary_bold else "No")
+
+        # Check average Salary in H33 is bold and contains a formula
+        average_salary_bold = sheet['H33'].font.bold if sheet['H33'].data_type == 'f' else False
+        checklist_data["Completed"].append("Yes" if average_salary_bold else "No")
+
+        # Check total Income Earned in I32 is bold and contains a formula
+        total_income_bold = sheet['I32'].font.bold if sheet['I32'].data_type == 'f' else False
+        checklist_data["Completed"].append("Yes" if total_income_bold else "No")
+
+        # Check average Income Earned in I33 is bold and contains a formula
+        average_income_bold = sheet['I33'].font.bold if sheet['I33'].data_type == 'f' else False
+        checklist_data["Completed"].append("Yes" if average_income_bold else "No")
+
+        # Check if headers are bold
+        headers_bold = all(
+            sheet.cell(row=1, column=col).font.bold
+            for col in range(1, len(expected_columns) + 1)
+        )
+        checklist_data["Completed"].append("Yes" if headers_bold else "No")
+
+        # Check borders and thick outside border
+        all_borders_applied = all(
+            sheet.cell(row=row, column=col).border is not None
+            for row in range(1, max_row)
+            for col in range(1, len(expected_columns) + 1)
+        )
+        checklist_data["Completed"].append("Yes" if all_borders_applied else "No")
+
+        # Check if cells in row 35 are merged and center-aligned
+        merged_in_row_35 = any("A35" in str(range) for range in sheet.merged_cells.ranges)
+        center_aligned = sheet['A35'].alignment.horizontal == 'center' if merged_in_row_35 else False
+        checklist_data["Completed"].append("Yes" if merged_in_row_35 and center_aligned else "No")
+
+        # Check if row 35 has a background color
+        background_color_present = sheet['A35'].fill is not None and sheet['A35'].fill.fill_type is not None
+        checklist_data["Completed"].append("Yes" if background_color_present else "No")
 
         # Display checklist table
         st.subheader("Checklist Results")
