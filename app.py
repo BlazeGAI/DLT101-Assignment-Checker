@@ -3,7 +3,7 @@ import pandas as pd
 from openpyxl import load_workbook
 from openpyxl.styles import Alignment, Font, PatternFill
 
-st.title("Excel Assignment 10.1 Checker")
+st.title("Excel Assignment Checker")
 
 # Upload Excel file
 uploaded_file = st.file_uploader("Upload your Excel file", type=["xlsx"])
