@@ -74,7 +74,12 @@ if uploaded_file:
 
         # Check if ID column contains unique numerical identifiers starting from 1001
         id_values = pd.to_numeric(alumni_df['ID'], errors='coerce')
-        id_column_valid = id_values.apply(lambda x: x >= 1001).all() and id_values.is_unique
+        
+        # Split the validation into two separate checks
+        are_unique = id_values.is_unique
+        all_above_1001 = (id_values >= 1001).all()
+        
+        id_column_valid = are_unique and all_above_1001
         checklist_data["Completed"].append("Yes" if id_column_valid else "No")
         
         # Check if Graduation Year calculation formula is in column G (Experience)
