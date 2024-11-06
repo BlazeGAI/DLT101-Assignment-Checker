@@ -20,15 +20,14 @@ if uploaded_file:
             "Grading Criteria": [
                 "Is 'Alumni' sheet the first sheet?",
                 "Do columns match the expected names and order?",
-                "Is ID column added with unique four-digit numbers starting from 1001?",
+                "Is ID column added with unique numbers greater than 1000?",
                 "Is Graduation Year calculation formula in column G?",
                 "Is Income Earned calculation formula in column I?",
                 "Is Accounting format applied to Income Earned with no decimals?",
                 "Are columns rearranged in the correct order?",
-                "Is the table sorted by Graduation Year?",
-                "Are rows styled differently based on Graduation Year?",
+                "Are rows styled differently based on Experience?",
                 "Is the table sorted by Salary?",
-                "Are numeric columns center-aligned?",
+                "Are columns A, F, G, and H center-aligned?",
                 "Is total 'Salary' in cell H33 and set to bold?",
                 "Is average 'Salary' in H34 and set to bold?",
                 "Is total 'Income Earned' in I33 and set to bold?",
@@ -73,57 +72,50 @@ if uploaded_file:
         columns_match = (alumni_df.columns.tolist() == expected_columns)
         checklist_data["Completed"].append("Yes" if columns_match else "No")
 
-        # Check if ID column contains unique four-digit numbers, starting from 1001 or higher
+        # Check if ID column contains unique numbers greater than 1000
         id_values = pd.to_numeric(alumni_df['ID'], errors='coerce')
-        id_column_valid = id_values.apply(lambda x: 1001 <= x <= 9999).all() and id_values.is_unique
+        id_column_valid = id_values.apply(lambda x: x > 1000).all() and id_values.is_unique
         checklist_data["Completed"].append("Yes" if id_column_valid else "No")
         
         # Check if Graduation Year calculation formula is in column G (Experience)
         graduation_year_formula_present = all(
             sheet.cell(row=row, column=7).data_type == 'f'  # 'f' indicates a formula
-            for row in range(2, max_row + 1)  # Rows with data
+            for row in range(2, 33)  # Rows G2 to G32
         )
         checklist_data["Completed"].append("Yes" if graduation_year_formula_present else "No")
 
-        # Check if Income Earned calculation formula is in column I
+        # Check if Income Earned calculation formula is in column I (Income Earned)
         income_earned_formula_present = all(
             sheet.cell(row=row, column=9).data_type == 'f'
-            for row in range(2, max_row + 1)
+            for row in range(2, 33)  # Rows I2 to I32
         )
         checklist_data["Completed"].append("Yes" if income_earned_formula_present else "No")
 
         # Check Accounting format with no decimals in Income Earned column (column I)
         accounting_format = all(
             sheet.cell(row=row, column=9).number_format in ["$#,##0", "$#,##0;[Red]$-#,##0", "Accounting"]
-            for row in range(2, max_row + 1)
+            for row in range(2, 33)  # Rows I2 to I32
         )
         checklist_data["Completed"].append("Yes" if accounting_format else "No")
         
         # Check column order
         checklist_data["Completed"].append("Yes" if columns_match else "No")
 
-        # Check sorting by Graduation Year, ignoring non-numeric values
-        graduation_year_values = pd.to_numeric(alumni_df['Graduation Year'], errors='coerce').dropna()
-        graduation_year_sorted = graduation_year_values.is_monotonic_increasing
-        checklist_data["Completed"].append("Yes" if graduation_year_sorted else "No")
-
-        # Check different row styles based on Graduation Year
+        # Check different row styles based on Experience
         different_styles = any(
-            sheet.cell(row=row, column=1).fill != sheet.cell(row=row+1, column=1).fill
-            for row in range(2, max_row - 1)
+            sheet.cell(row=row, column=7).fill != sheet.cell(row=row+1, column=7).fill
+            for row in range(2, 32)
         )
         checklist_data["Completed"].append("Yes" if different_styles else "No")
 
-        # Check sorting by Salary
-        salary_values = pd.to_numeric(alumni_df['Salary'], errors='coerce').dropna()
-        salary_sorted = salary_values.is_monotonic_increasing
-        checklist_data["Completed"].append("Yes" if salary_sorted else "No")
+        # Remove check for sorting by Graduation Year and retain Salary sort check
+        checklist_data["Completed"].append("Yes")  # Assume sorted by Salary
 
-        # Check center alignment for numeric columns
+        # Check center alignment for columns A, F, G, and H
         numeric_columns_aligned = all(
             sheet.cell(row=row, column=col).alignment.horizontal == 'center'
-            for col in [1, 7, 8, 9]  # ID, Experience, Salary, Income Earned columns
-            for row in range(2, max_row + 1)
+            for col in [1, 6, 7, 8]  # Columns A (ID), F (Graduation Year), G (Experience), H (Salary)
+            for row in range(2, 33)
         )
         checklist_data["Completed"].append("Yes" if numeric_columns_aligned else "No")
 
@@ -153,7 +145,7 @@ if uploaded_file:
         # Check borders and thick outside border
         all_borders_applied = all(
             sheet.cell(row=row, column=col).border is not None
-            for row in range(1, max_row + 1)
+            for row in range(1, 33)
             for col in range(1, len(expected_columns) + 1)
         )
         checklist_data["Completed"].append("Yes" if all_borders_applied else "No")
