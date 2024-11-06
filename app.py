@@ -92,8 +92,7 @@ if uploaded_file:
         checklist_data["Completed"].append("Yes" if columns_match else "No")
 
         # Check sorting by Graduation Year, ignoring non-numeric values
-        graduation_year_sorted = alumni_df['Graduation Year'].apply(lambda x: isinstance(x, (int, float))).all()
-        graduation_year_values = alumni_df['Graduation Year'][alumni_df['Graduation Year'].apply(lambda x: isinstance(x, (int, float)))]
+        graduation_year_values = pd.to_numeric(alumni_df['Graduation Year'], errors='coerce').dropna()
         graduation_year_sorted = graduation_year_values.is_monotonic_increasing
         checklist_data["Completed"].append("Yes" if graduation_year_sorted else "No")
 
@@ -105,8 +104,8 @@ if uploaded_file:
         checklist_data["Completed"].append("Yes" if different_styles else "No")
 
         # Check sorting by Salary, ignoring non-numeric values
-        salary_sorted_values = alumni_df['Salary'][alumni_df['Salary'].apply(lambda x: isinstance(x, (int, float)))]
-        salary_sorted = salary_sorted_values.is_monotonic
+        salary_values = pd.to_numeric(alumni_df['Salary'], errors='coerce').dropna()
+        salary_sorted = salary_values.is_monotonic_increasing
         checklist_data["Completed"].append("Yes" if salary_sorted else "No")
 
         # Check center alignment for numeric columns
