@@ -96,37 +96,31 @@ if uploaded_file:
         checklist_data["Completed"].append("Yes" if income_earned_formula_present else "No")
 
         # Check Accounting format with no decimals in Income Earned column (I2:I32)
-        acceptable_formats = [
-            "$#,##0",
-            "$#,##0;[Red]$-#,##0",
-            "Accounting",
-            "_($* #,##0_);_($* (#,##0);_($* -_);_(@_)",
-            '"$"#,##0_);("$"#,##0)',
-            '"$"#,##0_);[Red]("$"#,##0)',
-            "$#,##0_);($#,##0)",
-            "_($* #,##0.00_);_($* (#,##0.00);_($* -??_);_(@_)",
-            "_(* #,##0_);_(* (#,##0);_(* -_);_(@_)"
-        ]
-        
-        # Add debug print to see what format is being detected
-        for row in range(2, 33):
-            print(f"Row {row} format: {sheet.cell(row=row, column=9).number_format}")
-        
-        accounting_format = all(
-            sheet.cell(row=row, column=9).style == 'Accounting' or
-            any(format_code in sheet.cell(row=row, column=9).number_format 
-                for format_code in acceptable_formats)
-            for row in range(2, 33)
-        )
-        
-        checklist_data["Completed"].append("Yes" if accounting_format else "No")
-        
-        # Add debugging to see what formats are actually present
-        for row in range(2, 33):
-            current_format = sheet.cell(row=row, column=9).number_format
-            print(f"Row {row}: {current_format}")
-        
-        checklist_data["Completed"].append("Yes" if accounting_format else "No")
+        try:
+            accounting_format = True  # Start with True assumption
+            for row in range(2, 33):
+                cell_format = sheet.cell(row=row, column=9).number_format
+                # Print for debugging
+                print(f"Row {row} format: {cell_format}")
+                
+                # Check if the format matches accounting criteria
+                is_valid_format = (
+                    cell_format in ['_($* #,##0_);_($* (#,##0);_($* "-"??_);_(@_)',
+                                  '$#,##0',
+                                  'Accounting',
+                                  '_($* #,##0.00_);_($* (#,##0.00);_($* "-"??_);_(@_)'] or
+                    '$' in cell_format
+                )
+                
+                if not is_valid_format:
+                    accounting_format = False
+                    break
+                    
+            checklist_data["Completed"].append("Yes" if accounting_format else "No")
+            
+        except Exception as e:
+            print(f"Error checking accounting format: {e}")
+            checklist_data["Completed"].append("No")
         
         # Check column order
         checklist_data["Completed"].append("Yes" if columns_match else "No")
