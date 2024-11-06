@@ -1,7 +1,7 @@
 import streamlit as st
 import pandas as pd
 from openpyxl import load_workbook
-from openpyxl.styles import Alignment, Border, Side, Font, numbers
+from openpyxl.styles import Alignment, Border, Side, Font
 
 st.title("Alumni Sheet Checker")
 
@@ -55,7 +55,7 @@ if uploaded_file:
         # Check Accounting format for "Income Earned"
         income_earned_column = expected_columns.index("Income Earned") + 1  # 1-based index
         accounting_format = all(
-            sheet.cell(row=row, column=income_earned_column).number_format == numbers.FORMAT_ACCOUNTING
+            sheet.cell(row=row, column=income_earned_column).number_format in ["$#,##0;[Red]$-#,##0", '"$"#,##0']
             for row in range(2, sheet.max_row)  # Skipping header row
             if sheet.cell(row=row, column=income_earned_column).value is not None
         )
