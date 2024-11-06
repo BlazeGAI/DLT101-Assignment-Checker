@@ -95,10 +95,27 @@ if uploaded_file:
         )
         checklist_data["Completed"].append("Yes" if income_earned_formula_present else "No")
 
-        # Simpler check for Accounting format
+        # Check Accounting format with no decimals in Income Earned column (I2:I32)
+        acceptable_formats = [
+            "$#,##0",
+            "$#,##0;[Red]$-#,##0",
+            "Accounting",
+            "_($* #,##0_);_($* (#,##0);_($* -_);_(@_)",
+            '"$"#,##0_);("$"#,##0)',
+            '"$"#,##0_);[Red]("$"#,##0)',
+            "$#,##0_);($#,##0)",
+            "_($* #,##0.00_);_($* (#,##0.00);_($* -??_);_(@_)",
+            "_(* #,##0_);_(* (#,##0);_(* -_);_(@_)"
+        ]
+        
+        # Add debug print to see what format is being detected
+        for row in range(2, 33):
+            print(f"Row {row} format: {sheet.cell(row=row, column=9).number_format}")
+        
         accounting_format = all(
-            sheet.cell(row=row, column=9).style in ['Accounting', 'Currency'] or
-            '$' in str(sheet.cell(row=row, column=9).number_format)
+            sheet.cell(row=row, column=9).style == 'Accounting' or
+            any(format_code in sheet.cell(row=row, column=9).number_format 
+                for format_code in acceptable_formats)
             for row in range(2, 33)
         )
         
