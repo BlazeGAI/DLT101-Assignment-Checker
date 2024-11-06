@@ -183,11 +183,6 @@ if uploaded_file:
         background_color_present = sheet['A35'].fill is not None and sheet['A35'].fill.fill_type is not None
         checklist_data["Completed"].append("Yes" if background_color_present else "No")
 
-        # Display checklist table
-        st.subheader("Checklist Results")
-        checklist_df = pd.DataFrame(checklist_data)
-        st.table(checklist_df)
-
         # Calculate percentage complete and points
         total_yes = checklist_data["Completed"].count("Yes")
         total_items = len(checklist_data["Completed"])
