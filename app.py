@@ -1,6 +1,7 @@
 import streamlit as st
 import pandas as pd
 from openpyxl import load_workbook
+from openpyxl.utils import get_column_letter
 from openpyxl.styles import Alignment, Border, Side, Font, PatternFill
 
 st.title("Alumni Sheet Checker")
@@ -44,11 +45,21 @@ if uploaded_file:
         # Load the Alumni sheet
         sheet = workbook[sheet_names[0]] if alumni_sheet_present else workbook[sheet_names[0]]
         
-        # Read the sheet into a DataFrame for easier data manipulation
-        alumni_df = pd.DataFrame(sheet.values)
-        alumni_df.columns = alumni_df.iloc[0]  # Set headers from the first row
-        alumni_df = alumni_df.drop(0)  # Remove the header row from data
-        
+        # Determine the last row and last column with data
+        max_row = sheet.max_row
+        max_column = sheet.max_column
+
+        # Load data into DataFrame up to the last filled cell
+        data = sheet.iter_rows(min_row=1, max_row=max_row, max_col=max_column, values_only=True)
+        alumni_df = pd.DataFrame(data)
+
+        # Set headers and drop any fully empty rows
+        alumni_df.columns = alumni_df.iloc[0]  # Set the header row
+        alumni_df = alumni_df.drop(0).reset_index(drop=True)  # Remove header row from data
+
+        # Drop any completely empty rows or columns to avoid alignment issues
+        alumni_df = alumni_df.dropna(how='all', axis=0).dropna(how='all', axis=1)
+
         # Expected columns in the final order
         expected_columns = [
             "ID", "First Name", "Last Name", "Bachelor's Degree",
@@ -71,21 +82,21 @@ if uploaded_file:
         # Check if Graduation Year calculation formula is in column H
         graduation_year_formula_present = all(
             sheet.cell(row=row, column=7).data_type == 'f'  # 'f' indicates a formula
-            for row in range(2, 32)  # Rows with data (assuming 30 rows)
+            for row in range(2, max_row)  # Rows with data
         )
         checklist_data["Completed"].append("Yes" if graduation_year_formula_present else "No")
 
         # Check if Income Earned calculation formula is in column I
         income_earned_formula_present = all(
             sheet.cell(row=row, column=9).data_type == 'f'
-            for row in range(2, 32)
+            for row in range(2, max_row)
         )
         checklist_data["Completed"].append("Yes" if income_earned_formula_present else "No")
 
         # Check Accounting format with no decimals in Income Earned column
         accounting_format = all(
             sheet.cell(row=row, column=9).number_format in ["$#,##0", "$#,##0;[Red]$-#,##0", "Accounting"]
-            for row in range(2, 32)
+            for row in range(2, max_row)
         )
         checklist_data["Completed"].append("Yes" if accounting_format else "No")
         
@@ -97,7 +108,7 @@ if uploaded_file:
         graduation_year_sorted = graduation_year_values.is_monotonic_increasing
         checklist_data["Completed"].append("Yes" if graduation_year_sorted else "No")
 
-        # The rest of the checks remain the same as previously outlined.
+        # Continue with the rest of the checklist items as before
         # ...
 
         # Display checklist table
