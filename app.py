@@ -73,7 +73,8 @@ if uploaded_file:
         checklist_data["Completed"].append("Yes" if columns_match else "No")
 
         # Check if ID column contains unique numerical identifiers starting from 1001
-        id_values = pd.to_numeric(alumni_df['ID'], errors='coerce')
+        # Exclude the header row from the ID check
+        id_values = pd.to_numeric(alumni_df['ID'][1:], errors='coerce')  # Skip the header in row A1
         id_column_valid = id_values.apply(lambda x: x >= 1001).all() and id_values.is_unique
         checklist_data["Completed"].append("Yes" if id_column_valid else "No")
         
