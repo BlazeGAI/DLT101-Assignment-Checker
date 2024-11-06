@@ -21,7 +21,7 @@ if uploaded_file:
                 "Is 'Alumni' sheet the first sheet?",
                 "Do columns match the expected names and order?",
                 "Is ID column added with unique four-digit numbers starting from 1001?",
-                "Is Graduation Year calculation formula in column H?",
+                "Is Graduation Year calculation formula in column G?",
                 "Is Income Earned calculation formula in column I?",
                 "Is Accounting format applied to Income Earned with no decimals?",
                 "Are columns rearranged in the correct order?",
@@ -29,10 +29,10 @@ if uploaded_file:
                 "Are rows styled differently based on Graduation Year?",
                 "Is the table sorted by Salary?",
                 "Are numeric columns center-aligned?",
-                "Is total 'Salary' in cell H32 and set to bold?",
-                "Is average 'Salary' in H33 and set to bold?",
-                "Is total 'Income Earned' in I32 and set to bold?",
-                "Is average 'Income Earned' in I33 and set to bold?",
+                "Is total 'Salary' in cell H33 and set to bold?",
+                "Is average 'Salary' in H34 and set to bold?",
+                "Is total 'Income Earned' in I33 and set to bold?",
+                "Is average 'Income Earned' in I34 and set to bold?",
                 "Are headers in row 1 bolded?",
                 "Are all borders and thick outside border applied?",
                 "Is ChatGPT link merged and centered in row 35?",
@@ -78,24 +78,24 @@ if uploaded_file:
         id_column_valid = id_values.apply(lambda x: 1001 <= x <= 9999).all() and id_values.is_unique
         checklist_data["Completed"].append("Yes" if id_column_valid else "No")
         
-        # Check if Graduation Year calculation formula is in column H
+        # Check if Graduation Year calculation formula is in column G (Experience)
         graduation_year_formula_present = all(
             sheet.cell(row=row, column=7).data_type == 'f'  # 'f' indicates a formula
-            for row in range(2, max_row)  # Rows with data
+            for row in range(2, max_row + 1)  # Rows with data
         )
         checklist_data["Completed"].append("Yes" if graduation_year_formula_present else "No")
 
         # Check if Income Earned calculation formula is in column I
         income_earned_formula_present = all(
             sheet.cell(row=row, column=9).data_type == 'f'
-            for row in range(2, max_row)
+            for row in range(2, max_row + 1)
         )
         checklist_data["Completed"].append("Yes" if income_earned_formula_present else "No")
 
-        # Check Accounting format with no decimals in Income Earned column
+        # Check Accounting format with no decimals in Income Earned column (column I)
         accounting_format = all(
             sheet.cell(row=row, column=9).number_format in ["$#,##0", "$#,##0;[Red]$-#,##0", "Accounting"]
-            for row in range(2, max_row)
+            for row in range(2, max_row + 1)
         )
         checklist_data["Completed"].append("Yes" if accounting_format else "No")
         
@@ -122,25 +122,25 @@ if uploaded_file:
         # Check center alignment for numeric columns
         numeric_columns_aligned = all(
             sheet.cell(row=row, column=col).alignment.horizontal == 'center'
-            for col in [1, 7, 8, 9]
-            for row in range(2, max_row)
+            for col in [1, 7, 8, 9]  # ID, Experience, Salary, Income Earned columns
+            for row in range(2, max_row + 1)
         )
         checklist_data["Completed"].append("Yes" if numeric_columns_aligned else "No")
 
-        # Check total Salary in H32 is bold and contains a formula
-        total_salary_bold = sheet['H32'].font.bold if sheet['H32'].data_type == 'f' else False
+        # Check total Salary in H33 is bold and contains a formula
+        total_salary_bold = sheet['H33'].font.bold if sheet['H33'].data_type == 'f' else False
         checklist_data["Completed"].append("Yes" if total_salary_bold else "No")
 
-        # Check average Salary in H33 is bold and contains a formula
-        average_salary_bold = sheet['H33'].font.bold if sheet['H33'].data_type == 'f' else False
+        # Check average Salary in H34 is bold and contains a formula
+        average_salary_bold = sheet['H34'].font.bold if sheet['H34'].data_type == 'f' else False
         checklist_data["Completed"].append("Yes" if average_salary_bold else "No")
 
-        # Check total Income Earned in I32 is bold and contains a formula
-        total_income_bold = sheet['I32'].font.bold if sheet['I32'].data_type == 'f' else False
+        # Check total Income Earned in I33 is bold and contains a formula
+        total_income_bold = sheet['I33'].font.bold if sheet['I33'].data_type == 'f' else False
         checklist_data["Completed"].append("Yes" if total_income_bold else "No")
 
-        # Check average Income Earned in I33 is bold and contains a formula
-        average_income_bold = sheet['I33'].font.bold if sheet['I33'].data_type == 'f' else False
+        # Check average Income Earned in I34 is bold and contains a formula
+        average_income_bold = sheet['I34'].font.bold if sheet['I34'].data_type == 'f' else False
         checklist_data["Completed"].append("Yes" if average_income_bold else "No")
 
         # Check if headers are bold
@@ -153,7 +153,7 @@ if uploaded_file:
         # Check borders and thick outside border
         all_borders_applied = all(
             sheet.cell(row=row, column=col).border is not None
-            for row in range(1, max_row)
+            for row in range(1, max_row + 1)
             for col in range(1, len(expected_columns) + 1)
         )
         checklist_data["Completed"].append("Yes" if all_borders_applied else "No")
