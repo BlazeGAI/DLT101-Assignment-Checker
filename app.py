@@ -20,10 +20,10 @@ if uploaded_file:
             "Grading Criteria": [
                 "Is 'Alumni' sheet the first sheet?",
                 "Do columns match the expected names and order?",
-                "Is ID column added with unique numbers greater than 1000?",
+                "Does ID column contain unique numerical identifiers starting from 1001?",
                 "Is Graduation Year calculation formula in column G?",
                 "Is Income Earned calculation formula in column I?",
-                "Is Accounting format applied to Income Earned with no decimals?",
+                "Is Accounting format applied to Income Earned (I2:I32) with no decimals?",
                 "Are columns rearranged in the correct order?",
                 "Are rows styled differently based on Experience?",
                 "Is the table sorted by Salary?",
@@ -72,9 +72,9 @@ if uploaded_file:
         columns_match = (alumni_df.columns.tolist() == expected_columns)
         checklist_data["Completed"].append("Yes" if columns_match else "No")
 
-        # Check if ID column contains unique numbers greater than 1000
+        # Check if ID column contains unique numerical identifiers starting from 1001
         id_values = pd.to_numeric(alumni_df['ID'], errors='coerce')
-        id_column_valid = id_values.apply(lambda x: x > 1000).all() and id_values.is_unique
+        id_column_valid = id_values.apply(lambda x: x >= 1001).all() and id_values.is_unique
         checklist_data["Completed"].append("Yes" if id_column_valid else "No")
         
         # Check if Graduation Year calculation formula is in column G (Experience)
@@ -91,7 +91,7 @@ if uploaded_file:
         )
         checklist_data["Completed"].append("Yes" if income_earned_formula_present else "No")
 
-        # Check Accounting format with no decimals in Income Earned column (column I)
+        # Check Accounting format with no decimals in Income Earned column (I2:I32)
         accounting_format = all(
             sheet.cell(row=row, column=9).number_format in ["$#,##0", "$#,##0;[Red]$-#,##0", "Accounting"]
             for row in range(2, 33)  # Rows I2 to I32
