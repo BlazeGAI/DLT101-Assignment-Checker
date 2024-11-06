@@ -188,18 +188,37 @@ if uploaded_file:
         checklist_df = pd.DataFrame(checklist_data)
         st.table(checklist_df)
 
-        # Calculate percentage complete
+        # Calculate percentage complete and points
         total_yes = checklist_data["Completed"].count("Yes")
         total_items = len(checklist_data["Completed"])
         percentage_complete = (total_yes / total_items) * 100
-
-        # Add color coding for percentage
-        if percentage_complete == 100:
-            st.success(f"### Completion Score: {percentage_complete:.1f}%")
-        elif percentage_complete >= 80:
-            st.warning(f"### Completion Score: {percentage_complete:.1f}%")
-        else:
-            st.error(f"### Completion Score: {percentage_complete:.1f}%")
+        points = (total_yes / total_items) * 20
+        
+        # Display checklist table
+        st.subheader("Checklist Results")
+        checklist_df = pd.DataFrame(checklist_data)
+        st.table(checklist_df)
+        
+        # Create two columns for displaying scores
+        col1, col2 = st.columns(2)
+        
+        # Display percentage in first column
+        with col1:
+            if percentage_complete == 100:
+                st.success(f"Completion Score: {percentage_complete:.1f}%")
+            elif percentage_complete >= 80:
+                st.warning(f"Completion Score: {percentage_complete:.1f}%")
+            else:
+                st.error(f"Completion Score: {percentage_complete:.1f}%")
+        
+        # Display points in second column
+        with col2:
+            if points == 20:
+                st.success(f"Points: {points:.1f}/20")
+            elif points >= 16:
+                st.warning(f"Points: {points:.1f}/20")
+            else:
+                st.error(f"Points: {points:.1f}/20")
 
     except Exception as e:
         st.error(f"An error occurred: {e}")
