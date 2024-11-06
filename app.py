@@ -91,7 +91,7 @@ if uploaded_file:
         # Check if Income Earned calculation formula is in column I (Income Earned)
         income_earned_formula_present = all(
             sheet.cell(row=row, column=9).data_type == 'f'
-            for row in range(2, 33)  # Rows I2 to I32
+            for row in range(2, 32)  # Rows I2 to I32
         )
         checklist_data["Completed"].append("Yes" if income_earned_formula_present else "No")
 
