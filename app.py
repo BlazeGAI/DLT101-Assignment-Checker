@@ -74,8 +74,7 @@ if uploaded_file:
 
         # Check if ID column contains unique numerical identifiers starting from 1001
         id_values = pd.to_numeric(alumni_df['ID'], errors='coerce')
-        
-        # Split the validation into two separate checks
+        id_values = id_values.dropna()  # Remove any NaN values
         are_unique = id_values.is_unique
         all_above_1001 = (id_values >= 1001).all()
         
