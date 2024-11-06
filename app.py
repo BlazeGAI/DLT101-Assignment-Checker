@@ -98,7 +98,7 @@ if uploaded_file:
         # Check Accounting format with no decimals in Income Earned column (I2:I32)
         accounting_format = all(
             sheet.cell(row=row, column=9).number_format in ["$#,##0", "$#,##0;[Red]$-#,##0", "Accounting"]
-            for row in range(2, 33)  # Rows I2 to I32
+            for row in range(2, 32)  # Rows I2 to I32
         )
         checklist_data["Completed"].append("Yes" if accounting_format else "No")
         
@@ -108,7 +108,7 @@ if uploaded_file:
         # Check different row styles based on Experience
         different_styles = any(
             sheet.cell(row=row, column=7).fill != sheet.cell(row=row+1, column=7).fill
-            for row in range(2, 32)
+            for row in range(2, 33)
         )
         checklist_data["Completed"].append("Yes" if different_styles else "No")
 
