@@ -91,14 +91,14 @@ if uploaded_file:
         # Check if Income Earned calculation formula is in column I (Income Earned)
         income_earned_formula_present = all(
             sheet.cell(row=row, column=9).data_type == 'f'
-            for row in range(2, 32)  # Rows I2 to I32
+            for row in range(2, 33)  # Rows I2 to I32
         )
         checklist_data["Completed"].append("Yes" if income_earned_formula_present else "No")
 
         # Check Accounting format with no decimals in Income Earned column (I2:I32)
         accounting_format = all(
             sheet.cell(row=row, column=9).number_format in ["$#,##0", "$#,##0;[Red]$-#,##0", "Accounting"]
-            for row in range(2, 32)  # Rows I2 to I32
+            for row in range(2, 33)  # Rows I2 to I32
         )
         checklist_data["Completed"].append("Yes" if accounting_format else "No")
         
