@@ -11,7 +11,6 @@ uploaded_file = st.file_uploader("Upload your Excel file", type=["xlsx"])
 if uploaded_file:
     try:
         # Load the Excel file with openpyxl
-        workbook = load_workbook(uploaded_file)
         sheet_names = workbook.sheetnames
         alumni_sheet_present = (sheet_names[0] == "Alumni")
         
@@ -22,10 +21,10 @@ if uploaded_file:
                 "Do columns match the expected names and order?",
                 "Is 'Income Earned' in Accounting format with no decimals?",
                 "Are all numeric columns center-aligned?",
-                "Are header row and summary totals bolded?",
+                "Are header row and one summary row bolded?",
                 "Are all borders applied with a thick outside border?",
                 "Are total and average calculations present for 'Salary' and 'Income Earned'?",
-                "Is the ChatGPT link included in the final row?"
+                "Is the ChatGPT link included in row 35?"
             ],
             "Completed": []
         }
@@ -34,7 +33,7 @@ if uploaded_file:
         checklist_data["Completed"].append("Yes" if alumni_sheet_present else "No")
         
         # Load the sheet based on the name or default to first sheet if name mismatch
-        sheet = workbook[sheet_names[0]] if alumni_sheet_present else workbook[sheet_names[0]]
+        sheet = workbook[sheet_names[0] if alumni_sheet_present else sheet_names[0]]
         
         # Read the sheet into a DataFrame for column checking and data analysis
         alumni_df = pd.DataFrame(sheet.values)
@@ -72,12 +71,19 @@ if uploaded_file:
         )
         checklist_data["Completed"].append("Yes" if center_aligned else "No")
         
-        # Check bold formatting for header row
+        # Check bold formatting for header row and one summary row
         header_bold = all(
             sheet.cell(row=1, column=col).font.bold
             for col in range(1, len(expected_columns) + 1)
         )
-        checklist_data["Completed"].append("Yes" if header_bold else "No")
+        
+        # Check if one row of totals is bolded (e.g., second to last or last row of data)
+        summary_bold = any(
+            all(sheet.cell(row=row, column=col).font.bold for col in range(1, len(expected_columns) + 1))
+            for row in range(sheet.max_row - 2, sheet.max_row)  # Checking last two rows for bold formatting
+        )
+        
+        checklist_data["Completed"].append("Yes" if header_bold and summary_bold else "No")
         
         # Check borders (including thick outside border around the entire table)
         thin_border = Side(border_style="thin", color="000000")
@@ -107,15 +113,5 @@ if uploaded_file:
                 summary_present = True
         checklist_data["Completed"].append("Yes" if summary_present else "No")
         
-        # Check for ChatGPT link in the final row
-        last_row = alumni_df.iloc[-1].fillna('')
-        link_present = 'ChatGPT Link' in str(last_row.values[0])
-        checklist_data["Completed"].append("Yes" if link_present else "No")
-        
-        # Display checklist table
-        st.subheader("Checklist Results")
-        checklist_df = pd.DataFrame(checklist_data)
-        st.table(checklist_df)
-        
-    except Exception as e:
-        st.error(f"An error occurred: {e}")
+        # Check for ChatGPT link specifically in row 35
+        chatgpt_link_row = 
