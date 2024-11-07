@@ -169,10 +169,12 @@ if uploaded_file:
             is_centered = sheet["A35"].alignment.horizontal == 'center'
             checklist_data["Completed"].append("Yes" if is_centered else "No")
         else:
-            checklist_data["Completed"].append("No")
+           checklist_data["Completed"].append("No")
 
         # Check if row 35 has a background color
-        background_color_present = sheet['A35'].fill is not None and sheet['A35'].fill.fill_type is not None
+        background_color_present = (
+            sheet["A35"].fill is not None and sheet["A35"].fill.fill_type is not None
+        )
         checklist_data["Completed"].append("Yes" if background_color_present else "No")
 
         # Display checklist table
