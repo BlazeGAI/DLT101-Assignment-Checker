@@ -13,19 +13,10 @@ if uploaded_file:
         # Load the Excel file with openpyxl
         workbook = load_workbook(uploaded_file)
         sheet_names = workbook.sheetnames
-        
-        # Check if 'Alumni' sheet is present
-        if "Alumni" in sheet_names:
-            alumni_position = sheet_names.index("Alumni")
-            if alumni_position == 0:
-                st.write("Yes, 'Alumni' sheet is the first sheet.")
-            else:
-                st.write("No, 'Alumni' sheet is not the first sheet.")
-                st.write(f"'Alumni' sheet is currently in position {alumni_position + 1}.")
-        else:
-            st.write("No 'Alumni' sheet found in the workbook.")
-    except Exception as e:
-        st.write("An error occurred while processing the file:", e)
+
+        # Check if 'Alumni' sheet exists and if it's the first sheet
+        alumni_sheet_exists = "Alumni" in sheet_names
+        is_alumni_first_sheet = sheet_names[0] == "Alumni" if alumni_sheet_exists else False
 
         # Initialize checklist data
         checklist_data = {
