@@ -20,6 +20,7 @@ if uploaded_file:
             "Grading Criteria": [
                 "Is 'Alumni' sheet the first sheet?",
                 "Do columns match the expected names and order?",
+                "Does cell A1 contain 'ID' in the header?",
                 "Does ID column contain unique numerical identifiers starting from 1001?",
                 "Is Graduation Year calculation formula in column G?",
                 "Is Income Earned calculation formula in column I?",
@@ -43,6 +44,11 @@ if uploaded_file:
         # Load the Alumni sheet
         sheet = workbook[sheet_names[0]] if alumni_sheet_present else workbook[sheet_names[0]]
         
+        # Check if cell A1 contains "ID" in the header
+        a1_value = sheet["A1"].value
+        contains_id_in_header = "ID" in str(a1_value).upper() if a1_value else False
+        checklist_data["Completed"].append("Yes" if contains_id_in_header else "No")
+
         # Determine the last row and last column with data
         max_row = sheet.max_row
         max_column = sheet.max_column
@@ -96,31 +102,11 @@ if uploaded_file:
         checklist_data["Completed"].append("Yes" if income_earned_formula_present else "No")
 
         # Check Accounting format with no decimals in Income Earned column (I2:I32)
-        try:
-            accounting_format = True  # Start with True assumption
-            for row in range(2, 33):
-                cell_format = sheet.cell(row=row, column=9).number_format
-                # Print for debugging
-                print(f"Row {row} format: {cell_format}")
-                
-                # Check if the format matches accounting criteria
-                is_valid_format = (
-                    cell_format in ['_($* #,##0_);_($* (#,##0);_($* "-"??_);_(@_)',
-                                  '$#,##0',
-                                  'Accounting',
-                                  '_($* #,##0.00_);_($* (#,##0.00);_($* "-"??_);_(@_)'] or
-                    '$' in cell_format
-                )
-                
-                if not is_valid_format:
-                    accounting_format = False
-                    break
-                    
-            checklist_data["Completed"].append("Yes" if accounting_format else "No")
-            
-        except Exception as e:
-            print(f"Error checking accounting format: {e}")
-            checklist_data["Completed"].append("No")
+        accounting_format = all(
+            sheet.cell(row=row, column=9).number_format in ["$#,##0", "$#,##0;[Red]$-#,##0", "Accounting"]
+            for row in range(2, 33)  # Rows I2 to I32
+        )
+        checklist_data["Completed"].append("Yes" if accounting_format else "No")
         
         # Check column order
         checklist_data["Completed"].append("Yes" if columns_match else "No")
@@ -128,12 +114,9 @@ if uploaded_file:
         # Check different row styles based on Experience
         different_styles = any(
             sheet.cell(row=row, column=7).fill != sheet.cell(row=row+1, column=7).fill
-            for row in range(2, 33)
+            for row in range(2, 32)
         )
         checklist_data["Completed"].append("Yes" if different_styles else "No")
-
-        # Remove check for sorting by Graduation Year and retain Salary sort check
-        checklist_data["Completed"].append("Yes")  # Assume sorted by Salary
 
         # Check center alignment for columns A, F, G, and H
         numeric_columns_aligned = all(
@@ -183,37 +166,10 @@ if uploaded_file:
         background_color_present = sheet['A35'].fill is not None and sheet['A35'].fill.fill_type is not None
         checklist_data["Completed"].append("Yes" if background_color_present else "No")
 
-        # Calculate percentage complete and points
-        total_yes = checklist_data["Completed"].count("Yes")
-        total_items = len(checklist_data["Completed"])
-        percentage_complete = (total_yes / total_items) * 100
-        points = (total_yes / total_items) * 20
-        
         # Display checklist table
         st.subheader("Checklist Results")
         checklist_df = pd.DataFrame(checklist_data)
         st.table(checklist_df)
-        
-        # Create two columns for displaying scores
-        col1, col2 = st.columns(2)
-        
-        # Display percentage in first column
-        with col1:
-            if percentage_complete == 100:
-                st.success(f"Completion Score: {percentage_complete:.1f}%")
-            elif percentage_complete >= 80:
-                st.warning(f"Completion Score: {percentage_complete:.1f}%")
-            else:
-                st.error(f"Completion Score: {percentage_complete:.1f}%")
-        
-        # Display points in second column
-        with col2:
-            if points == 20:
-                st.success(f"Points: {points:.1f}/20")
-            elif points >= 16:
-                st.warning(f"Points: {points:.1f}/20")
-            else:
-                st.error(f"Points: {points:.1f}/20")
 
     except Exception as e:
         st.error(f"An error occurred: {e}")
