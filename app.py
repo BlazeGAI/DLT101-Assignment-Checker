@@ -16,11 +16,11 @@ if uploaded_file:
         alumni_sheet_present = "Alumni" in sheet_names
 
         # Ensure "Alumni" is present, regardless of order
-if "Alumni" in sheet_names:
-    alumni_sheet = workbook["Alumni"]  # Access the "Alumni" sheet directly by name
-    # Proceed with further processing using the alumni_sheet object
-else:
-    st.error("The 'Alumni' sheet is missing in the uploaded Excel file.")
+        if "Alumni" in sheet_names:
+            alumni_sheet = workbook["Alumni"]  # Access the "Alumni" sheet directly by name
+            # Proceed with further processing using the alumni_sheet object
+        else:
+            st.error("The 'Alumni' sheet is missing in the uploaded Excel file.")
 
         # Initialize checklist data
         checklist_data = {
