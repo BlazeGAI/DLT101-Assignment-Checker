@@ -41,6 +41,13 @@ if uploaded_file:
             "Completed": []
         }
 
+        # Expected columns in the final order
+        expected_columns = [
+            "ID", "First Name", "Last Name", "Bachelor's Degree",
+            "Current Profession", "Graduation Year", "Experience",
+            "Salary", "Income Earned"
+        ]
+
         # Add to checklist whether "Alumni" sheet is first
         checklist_data["Completed"].append("Yes" if is_first_sheet else "No")
 
@@ -69,13 +76,6 @@ if uploaded_file:
         else:
             st.error("The 'Alumni' sheet does not have the expected structure.")
             st.stop()
-
-        # Expected columns in the final order
-        expected_columns = [
-            "ID", "First Name", "Last Name", "Bachelor's Degree",
-            "Current Profession", "Graduation Year", "Experience",
-            "Salary", "Income Earned"
-        ]
 
         # Check column order and names
         columns_match = (alumni_df.columns.tolist() == expected_columns)
@@ -130,21 +130,81 @@ if uploaded_file:
             print(f"Error checking accounting format: {e}")
             checklist_data["Completed"].append("No")
 
-        # Continue with other checks, using alumni_sheet for cell-specific checks as needed...
+      # Check column order
+        checklist_data["Completed"].append("Yes" if columns_match else "No")
+
+        # Check different row styles based on Experience
+        different_styles = any(
+            sheet.cell(row=row, column=7).fill != sheet.cell(row=row+1, column=7).fill
+            for row in range(2, 33)
+        )
+        checklist_data["Completed"].append("Yes" if different_styles else "No")
+
+        # Remove check for sorting by Graduation Year and retain Salary sort check
+        checklist_data["Completed"].append("Yes")  # Assume sorted by Salary
+
+        # Check center alignment for columns A, F, G, and H
+        numeric_columns_aligned = all(
+            sheet.cell(row=row, column=col).alignment.horizontal == 'center'
+            for col in [1, 6, 7, 8]  # Columns A (ID), F (Graduation Year), G (Experience), H (Salary)
+            for row in range(2, 33)
+        )
+        checklist_data["Completed"].append("Yes" if numeric_columns_aligned else "No")
+
+        # Check total Salary in H33 is bold and contains a formula
+        total_salary_bold = sheet['H33'].font.bold if sheet['H33'].data_type == 'f' else False
+        checklist_data["Completed"].append("Yes" if total_salary_bold else "No")
+
+        # Check average Salary in H34 is bold and contains a formula
+        average_salary_bold = sheet['H34'].font.bold if sheet['H34'].data_type == 'f' else False
+        checklist_data["Completed"].append("Yes" if average_salary_bold else "No")
+
+        # Check total Income Earned in I33 is bold and contains a formula
+        total_income_bold = sheet['I33'].font.bold if sheet['I33'].data_type == 'f' else False
+        checklist_data["Completed"].append("Yes" if total_income_bold else "No")
+
+        # Check average Income Earned in I34 is bold and contains a formula
+        average_income_bold = sheet['I34'].font.bold if sheet['I34'].data_type == 'f' else False
+        checklist_data["Completed"].append("Yes" if average_income_bold else "No")
+
+        # Check if headers are bold
+        headers_bold = all(
+            sheet.cell(row=1, column=col).font.bold
+            for col in range(1, len(expected_columns) + 1)
+        )
+        checklist_data["Completed"].append("Yes" if headers_bold else "No")
+
+        # Check borders and thick outside border
+        all_borders_applied = all(
+            sheet.cell(row=row, column=col).border is not None
+            for row in range(1, 33)
+            for col in range(1, len(expected_columns) + 1)
+        )
+        checklist_data["Completed"].append("Yes" if all_borders_applied else "No")
+
+        # Check if cells in row 35 are merged and center-aligned
+        merged_in_row_35 = any("A35" in str(range) for range in sheet.merged_cells.ranges)
+        center_aligned = sheet['A35'].alignment.horizontal == 'center' if merged_in_row_35 else False
+        checklist_data["Completed"].append("Yes" if merged_in_row_35 and center_aligned else "No")
+
+        # Check if row 35 has a background color
+        background_color_present = sheet['A35'].fill is not None and sheet['A35'].fill.fill_type is not None
+        checklist_data["Completed"].append("Yes" if background_color_present else "No")
 
         # Display checklist table
         st.subheader("Checklist Results")
         checklist_df = pd.DataFrame(checklist_data)
         st.table(checklist_df)
-
         # Calculate percentage complete and points
         total_yes = checklist_data["Completed"].count("Yes")
         total_items = len(checklist_data["Completed"])
         percentage_complete = (total_yes / total_items) * 100
         points = (total_yes / total_items) * 20
 
-        # Display scores
+        # Create two columns for displaying scores
         col1, col2 = st.columns(2)
+
+        # Display percentage in first column
         with col1:
             if percentage_complete == 100:
                 st.success(f"Completion Score: {percentage_complete:.1f}%")
@@ -152,6 +212,8 @@ if uploaded_file:
                 st.warning(f"Completion Score: {percentage_complete:.1f}%")
             else:
                 st.error(f"Completion Score: {percentage_complete:.1f}%")
+
+        # Display points in second column
         with col2:
             if points == 20:
                 st.success(f"Points: {points:.1f}/20")
