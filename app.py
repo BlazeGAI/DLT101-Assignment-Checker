@@ -71,7 +71,7 @@ if uploaded_file:
         # Check if "Alumni" is the first sheet
         checklist_data["Completed"].append("Yes" if alumni_sheet_present else "No")
         
-        # Check column order and names
+              # Check column order and names
         columns_match = (alumni_df.columns.tolist() == expected_columns)
         checklist_data["Completed"].append("Yes" if columns_match else "No")
 
@@ -81,12 +81,10 @@ if uploaded_file:
         if id_column_name is None:
             checklist_data["Completed"].append("No")  # ID column not found
         else:
-            # Clean commas from ID values and convert to integers
-            alumni_df[id_column_name] = alumni_df[id_column_name].astype(str).str.replace(',', '').astype(float)
-            
+            # Convert ID column to numeric, ignoring non-numeric values (e.g., URL in A35)
+            id_values = pd.to_numeric(alumni_df[id_column_name], errors='coerce').dropna()
+
             # Check if ID column contains unique numerical identifiers starting from 1001
-            id_values = pd.to_numeric(alumni_df[id_column_name], errors='coerce')
-            id_values = id_values.dropna()  # Remove any NaN values
             are_unique = id_values.is_unique
             all_above_1001 = (id_values >= 1001).all()
             
