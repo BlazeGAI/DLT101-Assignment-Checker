@@ -40,8 +40,18 @@ if uploaded_file:
             "Completed": []
         }
 
-        # Load the Alumni sheet
-        sheet = workbook[sheet_names[0]] if alumni_sheet_present else workbook[sheet_names[0]]
+        # Check if "Alumni" sheet is the first sheet
+        alumni_sheet_present = "Alumni" in sheet_names
+        is_first_sheet = (sheet_names[0] == "Alumni")
+        
+        # Add to checklist whether Alumni is the first sheet
+        checklist_data["Completed"].append("Yes" if is_first_sheet else "No")
+        
+        # If "Alumni" sheet exists, proceed with loading it; otherwise, load the first available sheet
+        if alumni_sheet_present:
+            alumni_sheet = workbook["Alumni"]
+        else:
+            alumni_sheet = workbook[sheet_names[0]]
 
         # Determine the last row and last column with data
         max_row = sheet.max_row
