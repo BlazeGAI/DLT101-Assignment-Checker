@@ -13,8 +13,7 @@ if uploaded_file:
         # Load the Excel file with openpyxl
         workbook = load_workbook(uploaded_file)
         sheet_names = workbook.sheetnames
-        alumni_sheet_present = "Alumni" in sheet_names
-        is_first_sheet = (sheet_names[0] == "Alumni")
+        alumni_sheet_present = (sheet_names[0] == "Alumni")
 
         # Initialize checklist data
         checklist_data = {
@@ -41,6 +40,24 @@ if uploaded_file:
             "Completed": []
         }
 
+        # Load the Alumni sheet
+        sheet = workbook[sheet_names[0]] if alumni_sheet_present else workbook[sheet_names[0]]
+
+        # Determine the last row and last column with data
+        max_row = sheet.max_row
+        max_column = sheet.max_column
+
+        # Load data into DataFrame up to the last filled cell
+        data = sheet.iter_rows(min_row=1, max_row=max_row, max_col=max_column, values_only=True)
+        alumni_df = pd.DataFrame(data)
+
+        # Set headers and drop any fully empty rows
+        alumni_df.columns = alumni_df.iloc[0]  # Set the header row
+        alumni_df = alumni_df.drop(0).reset_index(drop=True)  # Remove header row from data
+
+        # Drop any completely empty rows or columns to avoid alignment issues
+        alumni_df = alumni_df.dropna(how='all', axis=0).dropna(how='all', axis=1)
+
         # Expected columns in the final order
         expected_columns = [
             "ID", "First Name", "Last Name", "Bachelor's Degree",
@@ -48,70 +65,45 @@ if uploaded_file:
             "Salary", "Income Earned"
         ]
 
-        # Add to checklist whether "Alumni" sheet is first
-        checklist_data["Completed"].append("Yes" if is_first_sheet else "No")
-
-        # Load the "Alumni" sheet if present, otherwise load the first available sheet
-        if alumni_sheet_present:
-            alumni_sheet = workbook["Alumni"]
-        else:
-            alumni_sheet = workbook[sheet_names[0]]
-
-        # Determine the last row and last column with data in the loaded sheet
-        max_row = alumni_sheet.max_row
-        max_column = alumni_sheet.max_column
-
-        # Load data into DataFrame up to the last filled cell
-        data = alumni_sheet.iter_rows(min_row=1, max_row=max_row, max_col=max_column, values_only=True)
-        alumni_df = pd.DataFrame(data)
-
-        # Remove fully empty rows and columns to avoid alignment issues
-        alumni_df.dropna(how='all', inplace=True)  # Drop completely empty rows
-        alumni_df.dropna(how='all', axis=1, inplace=True)  # Drop completely empty columns
-
-        # Check if the first row has the expected columns and set it as header
-        if not alumni_df.empty and len(alumni_df.columns) >= len(expected_columns):
-            alumni_df.columns = alumni_df.iloc[0]  # Set header
-            alumni_df = alumni_df.drop(0).reset_index(drop=True)  # Remove header row from data
-        else:
-            st.error("The 'Alumni' sheet does not have the expected structure.")
-            st.stop()
+        # Check if "Alumni" is the first sheet
+        checklist_data["Completed"].append("Yes" if alumni_sheet_present else "No")
 
         # Check column order and names
         columns_match = (alumni_df.columns.tolist() == expected_columns)
         checklist_data["Completed"].append("Yes" if columns_match else "No")
 
-        # Proceed only if "ID" column is present
-        if "ID" in alumni_df.columns:
-            # Check if ID column contains unique numerical identifiers starting from 1001
-            id_values = pd.to_numeric(alumni_df['ID'], errors='coerce')
-            id_values = id_values.dropna()  # Remove any NaN values
-            are_unique = id_values.is_unique
-            all_above_1001 = (id_values >= 1001).all()
-            id_column_valid = are_unique and all_above_1001
-            checklist_data["Completed"].append("Yes" if id_column_valid else "No")
-        else:
-            checklist_data["Completed"].append("No")
+        # Check if ID column contains unique numerical identifiers starting from 1001
+        id_values = pd.to_numeric(alumni_df['ID'], errors='coerce')
+        id_values = id_values.dropna()  # Remove any NaN values
+        are_unique = id_values.is_unique
+        all_above_1001 = (id_values >= 1001).all()
 
-        # Check if Graduation Year calculation formula is in column G
+        id_column_valid = are_unique and all_above_1001
+        checklist_data["Completed"].append("Yes" if id_column_valid else "No")
+
+        # Check if Graduation Year calculation formula is in column G (Experience)
         graduation_year_formula_present = all(
-            alumni_sheet.cell(row=row, column=7).data_type == 'f'
-            for row in range(2, min(33, max_row + 1))
+            sheet.cell(row=row, column=7).data_type == 'f'  # 'f' indicates a formula
+            for row in range(2, 33)  # Rows G2 to G32
         )
         checklist_data["Completed"].append("Yes" if graduation_year_formula_present else "No")
 
-        # Check if Income Earned calculation formula is in column I
+        # Check if Income Earned calculation formula is in column I (Income Earned)
         income_earned_formula_present = all(
-            alumni_sheet.cell(row=row, column=9).data_type == 'f'
-            for row in range(2, min(33, max_row + 1))
+            sheet.cell(row=row, column=9).data_type == 'f'
+            for row in range(2, 33)  # Rows I2 to I32
         )
         checklist_data["Completed"].append("Yes" if income_earned_formula_present else "No")
 
         # Check Accounting format with no decimals in Income Earned column (I2:I32)
         try:
-            accounting_format = True
-            for row in range(2, min(33, max_row + 1)):
-                cell_format = alumni_sheet.cell(row=row, column=9).number_format
+            accounting_format = True  # Start with True assumption
+            for row in range(2, 33):
+                cell_format = sheet.cell(row=row, column=9).number_format
+                # Print for debugging
+                print(f"Row {row} format: {cell_format}")
+
+                # Check if the format matches accounting criteria
                 is_valid_format = (
                     cell_format in ['_($* #,##0_);_($* (#,##0);_($* "-"??_);_(@_)',
                                   '$#,##0',
@@ -130,7 +122,7 @@ if uploaded_file:
             print(f"Error checking accounting format: {e}")
             checklist_data["Completed"].append("No")
 
-      # Check column order
+        # Check column order
         checklist_data["Completed"].append("Yes" if columns_match else "No")
 
         # Check different row styles based on Experience
