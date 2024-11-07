@@ -71,7 +71,7 @@ if uploaded_file:
         # Check if "Alumni" is the first sheet
         checklist_data["Completed"].append("Yes" if alumni_sheet_present else "No")
         
-              # Check column order and names
+        # Check column order and names
         columns_match = (alumni_df.columns.tolist() == expected_columns)
         checklist_data["Completed"].append("Yes" if columns_match else "No")
 
@@ -161,13 +161,13 @@ if uploaded_file:
         )
         checklist_data["Completed"].append("Yes" if all_borders_applied else "No")
 
-        # Check if cells in row 35 are merged and center-aligned
+             # Check if cells in row 35 are merged and contain a ChatGPT link
         a35_value = sheet["A35"].value
         if a35_value and isinstance(a35_value, str) and re.match(r"https://chatgpt.com/share/\w+", a35_value):
             is_centered = sheet["A35"].alignment.horizontal == 'center'
             checklist_data["Completed"].append("Yes" if is_centered else "No")
         else:
-           checklist_data["Completed"].append("No")
+            checklist_data["Completed"].append("No")
 
         # Check if row 35 has a background color
         background_color_present = (
@@ -180,5 +180,5 @@ if uploaded_file:
         checklist_df = pd.DataFrame(checklist_data)
         st.table(checklist_df)
 
-    except Exception as e:
+        except Exception as e:
         st.error(f"An error occurred: {e}")
