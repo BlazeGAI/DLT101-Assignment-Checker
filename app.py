@@ -13,10 +13,7 @@ if uploaded_file:
         # Load the Excel file with openpyxl
         workbook = load_workbook(uploaded_file)
         sheet_names = workbook.sheetnames
-
-        # Check if 'Alumni' sheet exists and if it's the first sheet
-        alumni_sheet_exists = "Alumni" in sheet_names
-        is_alumni_first_sheet = sheet_names[0] == "Alumni" if alumni_sheet_exists else False
+        alumni_sheet_present = "Alumni" in sheet_names
 
         # Initialize checklist data
         checklist_data = {
