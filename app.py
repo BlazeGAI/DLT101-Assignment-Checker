@@ -172,4 +172,13 @@ if uploaded_file:
             checklist_data["Completed"].append("No")
 
         # Check if row 35 has a background color
-        background_color_present = sheet['A35'].fill is not None and sheet['A35'].fill.fill_type is
+        background_color_present = sheet['A35'].fill is not None and sheet['A35'].fill.fill_type is not None
+        checklist_data["Completed"].append("Yes" if background_color_present else "No")
+
+        # Display checklist table
+        st.subheader("Checklist Results")
+        checklist_df = pd.DataFrame(checklist_data)
+        st.table(checklist_df)
+
+    except Exception as e:
+        st.error(f"An error occurred: {e}")
