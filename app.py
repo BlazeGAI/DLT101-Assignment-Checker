@@ -180,5 +180,5 @@ if uploaded_file:
         checklist_df = pd.DataFrame(checklist_data)
         st.table(checklist_df)
 
-     except Exception as e:
+    except Exception as e:
         st.error(f"An error occurred: {e}")
