@@ -49,12 +49,8 @@ if uploaded_file:
         contains_id_in_header = "ID" in str(a1_value).upper() if a1_value else False
         checklist_data["Completed"].append("Yes" if contains_id_in_header else "No")
 
-        # Determine the last row and last column with data
-        max_row = sheet.max_row
-        max_column = sheet.max_column
-
         # Load data into DataFrame up to the last filled cell
-        data = sheet.iter_rows(min_row=1, max_row=max_row, max_col=max_column, values_only=True)
+        data = sheet.iter_rows(min_row=1, max_row=sheet.max_row, max_col=sheet.max_column, values_only=True)
         alumni_df = pd.DataFrame(data)
 
         # Set headers and drop any fully empty rows
@@ -64,28 +60,23 @@ if uploaded_file:
         # Drop any completely empty rows or columns to avoid alignment issues
         alumni_df = alumni_df.dropna(how='all', axis=0).dropna(how='all', axis=1)
 
-        # Expected columns in the final order
-        expected_columns = [
-            "ID", "First Name", "Last Name", "Bachelor's Degree",
-            "Current Profession", "Graduation Year", "Experience",
-            "Salary", "Income Earned"
-        ]
+        # Find the ID column name dynamically by checking for "ID" in any column header
+        id_column_name = next((col for col in alumni_df.columns if "ID" in str(col).upper()), None)
 
-        # Check if "Alumni" is the first sheet
-        checklist_data["Completed"].append("Yes" if alumni_sheet_present else "No")
-        
-        # Check column order and names
-        columns_match = (alumni_df.columns.tolist() == expected_columns)
-        checklist_data["Completed"].append("Yes" if columns_match else "No")
-
-        # Check if ID column contains unique numerical identifiers starting from 1001
-        id_values = pd.to_numeric(alumni_df['ID'], errors='coerce')
-        id_values = id_values.dropna()  # Remove any NaN values
-        are_unique = id_values.is_unique
-        all_above_1001 = (id_values >= 1001).all()
-        
-        id_column_valid = are_unique and all_above_1001
-        checklist_data["Completed"].append("Yes" if id_column_valid else "No")
+        if id_column_name is None:
+            checklist_data["Completed"].append("No")  # ID column not found
+        else:
+            # Clean commas from ID values and convert to integers
+            alumni_df[id_column_name] = alumni_df[id_column_name].astype(str).str.replace(',', '').astype(float)
+            
+            # Check if ID column contains unique numerical identifiers starting from 1001
+            id_values = pd.to_numeric(alumni_df[id_column_name], errors='coerce')
+            id_values = id_values.dropna()  # Remove any NaN values
+            are_unique = id_values.is_unique
+            all_above_1001 = (id_values >= 1001).all()
+            
+            id_column_valid = are_unique and all_above_1001
+            checklist_data["Completed"].append("Yes" if id_column_valid else "No")
         
         # Check if Graduation Year calculation formula is in column G (Experience)
         graduation_year_formula_present = all(
