@@ -2,6 +2,7 @@ import streamlit as st
 import pandas as pd
 from openpyxl import load_workbook
 from openpyxl.styles import Alignment, Font, PatternFill
+import re
 
 st.title("Excel Assignment Checker")
 
@@ -35,7 +36,7 @@ if uploaded_file:
                 "Is average 'Income Earned' in I34 and set to bold?",
                 "Are headers in row 1 bolded?",
                 "Are all borders and thick outside border applied?",
-                "Is ChatGPT link merged and centered in row 35?",
+                "Is ChatGPT link present in cell A35 and centered?",
                 "Is row 35 filled with a background color?"
             ],
             "Completed": []
@@ -59,6 +60,20 @@ if uploaded_file:
 
         # Drop any completely empty rows or columns to avoid alignment issues
         alumni_df = alumni_df.dropna(how='all', axis=0).dropna(how='all', axis=1)
+
+        # Expected columns in the final order
+        expected_columns = [
+            "ID", "First Name", "Last Name", "Bachelor's Degree",
+            "Current Profession", "Graduation Year", "Experience",
+            "Salary", "Income Earned"
+        ]
+
+        # Check if "Alumni" is the first sheet
+        checklist_data["Completed"].append("Yes" if alumni_sheet_present else "No")
+        
+        # Check column order and names
+        columns_match = (alumni_df.columns.tolist() == expected_columns)
+        checklist_data["Completed"].append("Yes" if columns_match else "No")
 
         # Find the ID column name dynamically by checking for "ID" in any column header
         id_column_name = next((col for col in alumni_df.columns if "ID" in str(col).upper()), None)
@@ -149,18 +164,12 @@ if uploaded_file:
         checklist_data["Completed"].append("Yes" if all_borders_applied else "No")
 
         # Check if cells in row 35 are merged and center-aligned
-        merged_in_row_35 = any("A35" in str(range) for range in sheet.merged_cells.ranges)
-        center_aligned = sheet['A35'].alignment.horizontal == 'center' if merged_in_row_35 else False
-        checklist_data["Completed"].append("Yes" if merged_in_row_35 and center_aligned else "No")
+        a35_value = sheet["A35"].value
+        if a35_value and isinstance(a35_value, str) and re.match(r"https://chatgpt.com/share/\w+", a35_value):
+            is_centered = sheet["A35"].alignment.horizontal == 'center'
+            checklist_data["Completed"].append("Yes" if is_centered else "No")
+        else:
+            checklist_data["Completed"].append("No")
 
         # Check if row 35 has a background color
-        background_color_present = sheet['A35'].fill is not None and sheet['A35'].fill.fill_type is not None
-        checklist_data["Completed"].append("Yes" if background_color_present else "No")
-
-        # Display checklist table
-        st.subheader("Checklist Results")
-        checklist_df = pd.DataFrame(checklist_data)
-        st.table(checklist_df)
-
-    except Exception as e:
-        st.error(f"An error occurred: {e}")
+        background_color_present = sheet['A35'].fill is not None and sheet['A35'].fill.fill_type is
