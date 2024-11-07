@@ -58,12 +58,17 @@ if uploaded_file:
         data = alumni_sheet.iter_rows(min_row=1, max_row=max_row, max_col=max_column, values_only=True)
         alumni_df = pd.DataFrame(data)
 
-        # Set headers and drop any fully empty rows
-        alumni_df.columns = alumni_df.iloc[0]  # Set the header row
-        alumni_df = alumni_df.drop(0).reset_index(drop=True)  # Remove header row from data
+        # Remove fully empty rows and columns to avoid alignment issues
+        alumni_df.dropna(how='all', inplace=True)  # Drop completely empty rows
+        alumni_df.dropna(how='all', axis=1, inplace=True)  # Drop completely empty columns
 
-        # Drop any completely empty rows or columns to avoid alignment issues
-        alumni_df = alumni_df.dropna(how='all', axis=0).dropna(how='all', axis=1)
+        # Check if the first row has the expected columns and set it as header
+        if not alumni_df.empty and len(alumni_df.columns) >= len(expected_columns):
+            alumni_df.columns = alumni_df.iloc[0]  # Set header
+            alumni_df = alumni_df.drop(0).reset_index(drop=True)  # Remove header row from data
+        else:
+            st.error("The 'Alumni' sheet does not have the expected structure.")
+            st.stop()
 
         # Expected columns in the final order
         expected_columns = [
@@ -91,21 +96,21 @@ if uploaded_file:
         # Check if Graduation Year calculation formula is in column G
         graduation_year_formula_present = all(
             alumni_sheet.cell(row=row, column=7).data_type == 'f'
-            for row in range(2, 33)
+            for row in range(2, min(33, max_row + 1))
         )
         checklist_data["Completed"].append("Yes" if graduation_year_formula_present else "No")
 
         # Check if Income Earned calculation formula is in column I
         income_earned_formula_present = all(
             alumni_sheet.cell(row=row, column=9).data_type == 'f'
-            for row in range(2, 33)
+            for row in range(2, min(33, max_row + 1))
         )
         checklist_data["Completed"].append("Yes" if income_earned_formula_present else "No")
 
         # Check Accounting format with no decimals in Income Earned column (I2:I32)
         try:
             accounting_format = True
-            for row in range(2, 33):
+            for row in range(2, min(33, max_row + 1)):
                 cell_format = alumni_sheet.cell(row=row, column=9).number_format
                 is_valid_format = (
                     cell_format in ['_($* #,##0_);_($* (#,##0);_($* "-"??_);_(@_)',
@@ -125,7 +130,7 @@ if uploaded_file:
             print(f"Error checking accounting format: {e}")
             checklist_data["Completed"].append("No")
 
-        # Continue with the rest of the checks as before, using alumni_sheet for cell operations...
+        # Continue with other checks, using alumni_sheet for cell-specific checks as needed...
 
         # Display checklist table
         st.subheader("Checklist Results")
@@ -138,10 +143,8 @@ if uploaded_file:
         percentage_complete = (total_yes / total_items) * 100
         points = (total_yes / total_items) * 20
 
-        # Create two columns for displaying scores
+        # Display scores
         col1, col2 = st.columns(2)
-
-        # Display percentage in first column
         with col1:
             if percentage_complete == 100:
                 st.success(f"Completion Score: {percentage_complete:.1f}%")
@@ -149,8 +152,6 @@ if uploaded_file:
                 st.warning(f"Completion Score: {percentage_complete:.1f}%")
             else:
                 st.error(f"Completion Score: {percentage_complete:.1f}%")
-
-        # Display points in second column
         with col2:
             if points == 20:
                 st.success(f"Points: {points:.1f}/20")
