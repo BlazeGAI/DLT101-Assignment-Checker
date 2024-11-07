@@ -13,7 +13,8 @@ if uploaded_file:
         # Load the Excel file with openpyxl
         workbook = load_workbook(uploaded_file)
         sheet_names = workbook.sheetnames
-        alumni_sheet_present = (sheet_names[0] == "Alumni")
+        alumni_sheet_present = "Alumni" in sheet_names
+        is_first_sheet = (sheet_names[0] == "Alumni")
 
         # Initialize checklist data
         checklist_data = {
@@ -40,25 +41,21 @@ if uploaded_file:
             "Completed": []
         }
 
-        # Check if "Alumni" sheet is the first sheet
-        alumni_sheet_present = "Alumni" in sheet_names
-        is_first_sheet = (sheet_names[0] == "Alumni")
-        
-        # Add to checklist whether Alumni is the first sheet
+        # Add to checklist whether "Alumni" sheet is first
         checklist_data["Completed"].append("Yes" if is_first_sheet else "No")
-        
-        # If "Alumni" sheet exists, proceed with loading it; otherwise, load the first available sheet
+
+        # Load the "Alumni" sheet if present, otherwise load the first available sheet
         if alumni_sheet_present:
             alumni_sheet = workbook["Alumni"]
         else:
             alumni_sheet = workbook[sheet_names[0]]
 
-        # Determine the last row and last column with data
-        max_row = sheet.max_row
-        max_column = sheet.max_column
+        # Determine the last row and last column with data in the loaded sheet
+        max_row = alumni_sheet.max_row
+        max_column = alumni_sheet.max_column
 
         # Load data into DataFrame up to the last filled cell
-        data = sheet.iter_rows(min_row=1, max_row=max_row, max_col=max_column, values_only=True)
+        data = alumni_sheet.iter_rows(min_row=1, max_row=max_row, max_col=max_column, values_only=True)
         alumni_df = pd.DataFrame(data)
 
         # Set headers and drop any fully empty rows
@@ -75,9 +72,6 @@ if uploaded_file:
             "Salary", "Income Earned"
         ]
 
-        # Check if "Alumni" is the first sheet
-        checklist_data["Completed"].append("Yes" if alumni_sheet_present else "No")
-
         # Check column order and names
         columns_match = (alumni_df.columns.tolist() == expected_columns)
         checklist_data["Completed"].append("Yes" if columns_match else "No")
@@ -91,29 +85,25 @@ if uploaded_file:
         id_column_valid = are_unique and all_above_1001
         checklist_data["Completed"].append("Yes" if id_column_valid else "No")
 
-        # Check if Graduation Year calculation formula is in column G (Experience)
+        # Check if Graduation Year calculation formula is in column G
         graduation_year_formula_present = all(
-            sheet.cell(row=row, column=7).data_type == 'f'  # 'f' indicates a formula
-            for row in range(2, 33)  # Rows G2 to G32
+            alumni_sheet.cell(row=row, column=7).data_type == 'f'  # 'f' indicates a formula
+            for row in range(2, 33)
         )
         checklist_data["Completed"].append("Yes" if graduation_year_formula_present else "No")
 
-        # Check if Income Earned calculation formula is in column I (Income Earned)
+        # Check if Income Earned calculation formula is in column I
         income_earned_formula_present = all(
-            sheet.cell(row=row, column=9).data_type == 'f'
-            for row in range(2, 33)  # Rows I2 to I32
+            alumni_sheet.cell(row=row, column=9).data_type == 'f'
+            for row in range(2, 33)
         )
         checklist_data["Completed"].append("Yes" if income_earned_formula_present else "No")
 
         # Check Accounting format with no decimals in Income Earned column (I2:I32)
         try:
-            accounting_format = True  # Start with True assumption
+            accounting_format = True
             for row in range(2, 33):
-                cell_format = sheet.cell(row=row, column=9).number_format
-                # Print for debugging
-                print(f"Row {row} format: {cell_format}")
-
-                # Check if the format matches accounting criteria
+                cell_format = alumni_sheet.cell(row=row, column=9).number_format
                 is_valid_format = (
                     cell_format in ['_($* #,##0_);_($* (#,##0);_($* "-"??_);_(@_)',
                                   '$#,##0',
@@ -132,12 +122,9 @@ if uploaded_file:
             print(f"Error checking accounting format: {e}")
             checklist_data["Completed"].append("No")
 
-        # Check column order
-        checklist_data["Completed"].append("Yes" if columns_match else "No")
-
         # Check different row styles based on Experience
         different_styles = any(
-            sheet.cell(row=row, column=7).fill != sheet.cell(row=row+1, column=7).fill
+            alumni_sheet.cell(row=row, column=7).fill != alumni_sheet.cell(row=row+1, column=7).fill
             for row in range(2, 33)
         )
         checklist_data["Completed"].append("Yes" if different_styles else "No")
@@ -147,56 +134,57 @@ if uploaded_file:
 
         # Check center alignment for columns A, F, G, and H
         numeric_columns_aligned = all(
-            sheet.cell(row=row, column=col).alignment.horizontal == 'center'
+            alumni_sheet.cell(row=row, column=col).alignment.horizontal == 'center'
             for col in [1, 6, 7, 8]  # Columns A (ID), F (Graduation Year), G (Experience), H (Salary)
             for row in range(2, 33)
         )
         checklist_data["Completed"].append("Yes" if numeric_columns_aligned else "No")
 
         # Check total Salary in H33 is bold and contains a formula
-        total_salary_bold = sheet['H33'].font.bold if sheet['H33'].data_type == 'f' else False
+        total_salary_bold = alumni_sheet['H33'].font.bold if alumni_sheet['H33'].data_type == 'f' else False
         checklist_data["Completed"].append("Yes" if total_salary_bold else "No")
 
         # Check average Salary in H34 is bold and contains a formula
-        average_salary_bold = sheet['H34'].font.bold if sheet['H34'].data_type == 'f' else False
+        average_salary_bold = alumni_sheet['H34'].font.bold if alumni_sheet['H34'].data_type == 'f' else False
         checklist_data["Completed"].append("Yes" if average_salary_bold else "No")
 
         # Check total Income Earned in I33 is bold and contains a formula
-        total_income_bold = sheet['I33'].font.bold if sheet['I33'].data_type == 'f' else False
+        total_income_bold = alumni_sheet['I33'].font.bold if alumni_sheet['I33'].data_type == 'f' else False
         checklist_data["Completed"].append("Yes" if total_income_bold else "No")
 
         # Check average Income Earned in I34 is bold and contains a formula
-        average_income_bold = sheet['I34'].font.bold if sheet['I34'].data_type == 'f' else False
+        average_income_bold = alumni_sheet['I34'].font.bold if alumni_sheet['I34'].data_type == 'f' else False
         checklist_data["Completed"].append("Yes" if average_income_bold else "No")
 
         # Check if headers are bold
         headers_bold = all(
-            sheet.cell(row=1, column=col).font.bold
+            alumni_sheet.cell(row=1, column=col).font.bold
             for col in range(1, len(expected_columns) + 1)
         )
         checklist_data["Completed"].append("Yes" if headers_bold else "No")
 
         # Check borders and thick outside border
         all_borders_applied = all(
-            sheet.cell(row=row, column=col).border is not None
+            alumni_sheet.cell(row=row, column=col).border is not None
             for row in range(1, 33)
             for col in range(1, len(expected_columns) + 1)
         )
         checklist_data["Completed"].append("Yes" if all_borders_applied else "No")
 
         # Check if cells in row 35 are merged and center-aligned
-        merged_in_row_35 = any("A35" in str(range) for range in sheet.merged_cells.ranges)
-        center_aligned = sheet['A35'].alignment.horizontal == 'center' if merged_in_row_35 else False
+        merged_in_row_35 = any("A35" in str(range) for range in alumni_sheet.merged_cells.ranges)
+        center_aligned = alumni_sheet['A35'].alignment.horizontal == 'center' if merged_in_row_35 else False
         checklist_data["Completed"].append("Yes" if merged_in_row_35 and center_aligned else "No")
 
         # Check if row 35 has a background color
-        background_color_present = sheet['A35'].fill is not None and sheet['A35'].fill.fill_type is not None
+        background_color_present = alumni_sheet['A35'].fill is not None and alumni_sheet['A35'].fill.fill_type is not None
         checklist_data["Completed"].append("Yes" if background_color_present else "No")
 
         # Display checklist table
         st.subheader("Checklist Results")
         checklist_df = pd.DataFrame(checklist_data)
         st.table(checklist_df)
+
         # Calculate percentage complete and points
         total_yes = checklist_data["Completed"].count("Yes")
         total_items = len(checklist_data["Completed"])
