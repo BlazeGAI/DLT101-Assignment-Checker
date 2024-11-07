@@ -21,6 +21,9 @@ if uploaded_file:
             # Proceed with further processing using the alumni_sheet object
         else:
             st.error("The 'Alumni' sheet is missing in the uploaded Excel file.")
+    
+    except Exception as e:
+        st.error(f"An error occurred: {e}")
 
         # Initialize checklist data
         checklist_data = {
