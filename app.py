@@ -15,12 +15,13 @@ if uploaded_file:
         sheet_names = workbook.sheetnames
 
         # Check if "Alumni" sheet is present
-        if "Alumni" not in sheet_names:
-            raise ValueError("The 'Alumni' sheet is not present in the uploaded file.")
-
-        # Continue with the rest of the checklist if "Alumni" sheet is present
-        alumni_sheet_present = (sheet_names[0] == "Alumni")
-
+        alumni_sheet_present = "Alumni" in sheet_names
+        if not alumni_sheet_present:
+            st.error("The 'Alumni' sheet is not present in the uploaded file. Please check and upload again.")
+        else:
+            # Check if "Alumni" is the first sheet
+            is_first_sheet = (sheet_names[0] == "Alumni")
+        
         # Initialize checklist data
         checklist_data = {
             "Grading Criteria": [
@@ -46,7 +47,10 @@ if uploaded_file:
             "Completed": []
         }
 
-        # Load the Alumni sheet
+        # Record if "Alumni" sheet is the first sheet
+        checklist_data["Completed"].append("Yes" if is_first_sheet else "No")
+
+        # Load the Alumni sheet regardless of its position in the workbook
         sheet = workbook["Alumni"]
 
         # Determine the last row and last column with data
@@ -70,9 +74,6 @@ if uploaded_file:
             "Current Profession", "Graduation Year", "Experience",
             "Salary", "Income Earned"
         ]
-
-        # Check if "Alumni" is the first sheet
-        checklist_data["Completed"].append("Yes" if alumni_sheet_present else "No")
 
         # Check column order and names
         columns_match = (alumni_df.columns.tolist() == expected_columns)
@@ -193,16 +194,15 @@ if uploaded_file:
         st.subheader("Checklist Results")
         checklist_df = pd.DataFrame(checklist_data)
         st.table(checklist_df)
-        # Calculate percentage complete and points
+
+        # Calculate completion score and display
         total_yes = checklist_data["Completed"].count("Yes")
         total_items = len(checklist_data["Completed"])
         percentage_complete = (total_yes / total_items) * 100
         points = (total_yes / total_items) * 20
 
-        # Create two columns for displaying scores
+        # Display completion score and points
         col1, col2 = st.columns(2)
-
-        # Display percentage in first column
         with col1:
             if percentage_complete == 100:
                 st.success(f"Completion Score: {percentage_complete:.1f}%")
@@ -210,8 +210,6 @@ if uploaded_file:
                 st.warning(f"Completion Score: {percentage_complete:.1f}%")
             else:
                 st.error(f"Completion Score: {percentage_complete:.1f}%")
-
-        # Display points in second column
         with col2:
             if points == 20:
                 st.success(f"Points: {points:.1f}/20")
