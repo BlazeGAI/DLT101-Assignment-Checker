@@ -13,6 +13,12 @@ if uploaded_file:
         # Load the Excel file with openpyxl
         workbook = load_workbook(uploaded_file)
         sheet_names = workbook.sheetnames
+
+        # Check if "Alumni" sheet is present
+        if "Alumni" not in sheet_names:
+            raise ValueError("The 'Alumni' sheet is not present in the uploaded file.")
+
+        # Continue with the rest of the checklist if "Alumni" sheet is present
         alumni_sheet_present = (sheet_names[0] == "Alumni")
 
         # Initialize checklist data
@@ -41,7 +47,7 @@ if uploaded_file:
         }
 
         # Load the Alumni sheet
-        sheet = workbook[sheet_names[0]] if alumni_sheet_present else workbook[sheet_names[0]]
+        sheet = workbook["Alumni"]
 
         # Determine the last row and last column with data
         max_row = sheet.max_row
