@@ -59,7 +59,9 @@ def check_word_1(doc):
     checklist_data["Completed"].append("Yes" if title_centered else "No")
 
     # Improved paragraph counting
+    try:
     body_paragraphs = []
+    found_page_break = False
     in_references = False
     
     for p in doc.paragraphs:
@@ -69,7 +71,16 @@ def check_word_1(doc):
         if not text:
             continue
             
-        # Check if we've reached the references section
+        # Check for page break
+        if p._element.xml.startswith('<w:p><w:r><w:br w:type="page"/>'):
+            found_page_break = True
+            continue
+            
+        # Skip until we find a page break
+        if not found_page_break:
+            continue
+            
+        # Check if we've reached references
         if text.lower() == 'references':
             in_references = True
             continue
@@ -78,18 +89,17 @@ def check_word_1(doc):
         if in_references:
             continue
             
-        # Skip title and header info
-        if any(keyword in text for keyword in ['University', 'Professor', 'DLT']):
-            continue
-            
         # Skip conclusion
         if text.lower().startswith('in conclusion'):
             continue
             
-        # Count substantial paragraphs that aren't title or header
-        if len(text) > 100 and not text.startswith('The Effects of'):
-            body_paragraphs.append(text)
-            print(f"Found body paragraph: {text[:50]}...")  # Debug print
+        # Check for indentation (first line indent)
+        if hasattr(p.paragraph_format, 'first_line_indent'):
+            first_line_indent = p.paragraph_format.first_line_indent
+            if first_line_indent and first_line_indent > 0:
+                if len(text) > 100:  # Ensure it's a substantial paragraph
+                    body_paragraphs.append(text)
+                    print(f"Found indented paragraph: {text[:50]}...")  # Debug print
 
     print(f"Number of body paragraphs: {len(body_paragraphs)}")  # Debug print
     sufficient_paragraphs = len(body_paragraphs) >= 3
