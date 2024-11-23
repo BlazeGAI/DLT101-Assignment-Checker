@@ -80,8 +80,4 @@ def check_word_1(doc):
     )
     checklist_data["Completed"].append("Yes" if has_citations else "No")
 
-    # Fill in any remaining criteria with "No" if needed
-    while len(checklist_data["Completed"]) < len(checklist_data["Grading Criteria"]):
-        checklist_data["Completed"].append("Maybe")
-
     return checklist_data
