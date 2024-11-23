@@ -1,7 +1,7 @@
 def check_excel_1(workbook):
     sheet = workbook.active
     checklist_data = {
-            "Grading Criteria": [
+     "Grading Criteria": [
                 "Are there 6 columns A-F?",
                 "Are there exactly 10 rows of data in the dataset?",
                 "Are the first 5 column headers named ID, First Name, Last Name, Date of Birth, Hometown?",
@@ -73,4 +73,4 @@ def check_excel_1(workbook):
                                   sheet['A13'].fill.fill_type is not None)
         checklist_data["Completed"].append("Yes" if background_color_present else "No")
 
-      return checklist_data
+    return checklist_data
