@@ -19,7 +19,8 @@ if uploaded_file:
             "Grading Criteria": [
                 "Are there 6 columns A-F?",
                 "Are there exactly 10 rows of data in the dataset?",
-                "Are the column headers named ID, First Name, Last Name, Date of Birth, Hometown, Occupation?",
+                "Are the first 5 column headers named ID, First Name, Last Name, Date of Birth, Hometown?",
+                "Does the last column have a meaningful header and consistent data?",
                 "Are the columns banded color?",
                 "Are the headers in row 1 bolded?",
                 "Are all borders and a thick outside border applied to the table?",
@@ -38,11 +39,16 @@ if uploaded_file:
         num_data_rows = sheet.max_row - 1  # Subtract 1 for header row
         checklist_data["Completed"].append("Yes" if num_data_rows == 10 else "No")
 
-        # Check column headers
-        expected_headers = ["ID", "First Name", "Last Name", "Date of Birth", "Hometown", "Occupation"]
-        headers = [sheet.cell(row=1, column=i).value for i in range(1, 7)]
+        # Check first 5 column headers
+        expected_headers = ["ID", "First Name", "Last Name", "Date of Birth", "Hometown"]
+        headers = [sheet.cell(row=1, column=i).value for i in range(1, 6)]
         headers_match = all(a == b for a, b in zip(headers, expected_headers))
         checklist_data["Completed"].append("Yes" if headers_match else "No")
+
+        # Check if last column has a header and data
+        last_col_header = sheet.cell(row=1, column=6).value
+        last_col_has_data = any(sheet.cell(row=i, column=6).value for i in range(2, 12))
+        checklist_data["Completed"].append("Yes" if last_col_header and last_col_has_data else "No")
 
         # Check for banded colors
         has_banded_colors = False
@@ -57,15 +63,15 @@ if uploaded_file:
         # Check if headers are bold
         headers_bold = all(
             sheet.cell(row=1, column=col).font.bold
-            for col in range(1, 7)  # Changed to 7 to check columns A-F
+            for col in range(1, 7)
         )
         checklist_data["Completed"].append("Yes" if headers_bold else "No")
 
         # Check borders
         all_borders_applied = all(
             sheet.cell(row=row, column=col).border is not None
-            for row in range(1, 12)  # Check rows 1-11 (headers + 10 data rows)
-            for col in range(1, 7)   # Check columns A-F
+            for row in range(1, 12)
+            for col in range(1, 7)
         )
         checklist_data["Completed"].append("Yes" if all_borders_applied else "No")
 
