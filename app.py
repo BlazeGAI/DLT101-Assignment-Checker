@@ -7,20 +7,15 @@ from openpyxl import load_workbook
 
 st.title("Excel Assignment Checker")
 
-# Create three columns for file uploaders
-col1, col2, col3 = st.columns(3)
+# Create stacked file uploaders
+st.subheader("Excel Assignment 1")
+excel_1_file = st.file_uploader("Upload Excel_1", type=["xlsx"], key="excel_1")
 
-with col1:
-    st.subheader("Excel Assignment 1")
-    excel_1_file = st.file_uploader("Upload Excel_1", type=["xlsx"], key="excel_1")
+st.subheader("Excel Assignment 2")
+excel_2_file = st.file_uploader("Upload Excel_2", type=["xlsx"], key="excel_2")
 
-with col2:
-    st.subheader("Excel Assignment 2")
-    excel_2_file = st.file_uploader("Upload Excel_2", type=["xlsx"], key="excel_2")
-
-with col3:
-    st.subheader("Excel Assignment 3")
-    excel_3_file = st.file_uploader("Upload Excel_3", type=["xlsx"], key="excel_3")
+st.subheader("Excel Assignment 3")
+excel_3_file = st.file_uploader("Upload Excel_3", type=["xlsx"], key="excel_3")
 
 # Check files and display results
 if excel_1_file:
