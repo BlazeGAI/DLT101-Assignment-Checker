@@ -75,17 +75,16 @@ if uploaded_file:
         correct_title = False
         for chart in sheet._charts:
             if hasattr(chart, 'title') and chart.title is not None:
-                if hasattr(chart.title, 'tx') and hasattr(chart.title.tx, 'rich') and hasattr(chart.title.tx.rich, 'paragraphs'):
-                    for paragraph in chart.title.tx.rich.paragraphs:
-                        for run in paragraph.runs:
-                            chart_title = run.text.upper().strip()
-                            expected_title = "POPULATION OF THE 20 SAMPLE COUNTRIES".upper().strip()
-                            if chart_title == expected_title:
-                                correct_title = True
-                                break
-                # For debugging
-                st.write(f"Found title: {chart_title if 'chart_title' in locals() else 'No title found'}")
-                st.write(f"Expected title: {expected_title if 'expected_title' in locals() else 'No expected title'}")
+                if hasattr(chart.title, 'tx') and hasattr(chart.title.tx, 'rich'):
+                    title_text = chart.title.tx.rich.paragraphs[0].text
+                    chart_title = title_text.upper().strip()
+                    expected_title = "POPULATION OF THE 20 SAMPLE COUNTRIES".upper().strip()
+                    if chart_title == expected_title:
+                        correct_title = True
+                        break
+                    # For debugging
+                    st.write(f"Found title: {chart_title}")
+                    st.write(f"Expected title: {expected_title}")
         checklist_data["Completed"].append("Yes" if correct_title else "No")
 
         # Check for GDP chart with gradient fill
