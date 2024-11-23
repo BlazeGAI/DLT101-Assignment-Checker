@@ -108,4 +108,9 @@ def check_word_1(doc):
     )
     checklist_data["Completed"].append("Yes" if has_citations else "No")
 
+    except Exception as e:
+        print(f"Error in paragraph checking: {str(e)}")  # Debug print
+        while len(checklist_data["Completed"]) < len(checklist_data["Grading Criteria"]):
+            checklist_data["Completed"].append("No")
+
     return checklist_data
