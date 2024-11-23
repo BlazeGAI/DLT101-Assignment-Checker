@@ -2,7 +2,7 @@ from openpyxl.styles import Alignment, Font, PatternFill
 
 def check_excel_3(workbook):
     checklist_data = {
-    "Grading Criteria": [
+        "Grading Criteria": [
             "Is the worksheet named 'Countries'?",
             "Are there 4 columns (Country, Continent, Population, GDP per Capita)?",
             "Does the table contain exactly 20 countries with data?",
@@ -74,9 +74,6 @@ def check_excel_3(workbook):
                                 if chart_title.lower() == expected_title.lower():
                                     correct_title = True
                                     break
-                                # For debugging
-                                st.write(f"Found title: {chart_title}")
-                                st.write(f"Expected title: {expected_title}")
     checklist_data["Completed"].append("Yes" if correct_title else "No")
 
     # Check for GDP chart with gradient fill
