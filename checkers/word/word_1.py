@@ -59,7 +59,6 @@ def check_word_1(doc):
     checklist_data["Completed"].append("Yes" if title_centered else "No")
 
     # Improved paragraph counting
-    try:
     body_paragraphs = []
     found_page_break = False
     in_references = False
