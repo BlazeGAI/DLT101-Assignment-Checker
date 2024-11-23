@@ -5,7 +5,6 @@ from docx.enum.style import WD_STYLE_TYPE
 def check_word_1(doc):
     checklist_data = {
         "Grading Criteria": [
-            "Is the document in APA format?",
             "Is the font Times New Roman, 12pt?",
             "Is line spacing set to double?",
             "Are margins set to 1 inch on all sides?",
@@ -83,6 +82,6 @@ def check_word_1(doc):
 
     # Fill in any remaining criteria with "No" if needed
     while len(checklist_data["Completed"]) < len(checklist_data["Grading Criteria"]):
-        checklist_data["Completed"].append("No")
+        checklist_data["Completed"].append("Maybe")
 
     return checklist_data
