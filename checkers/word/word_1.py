@@ -21,9 +21,11 @@ def check_word_1(doc):
     correct_font = True
     for paragraph in doc.paragraphs:
         for run in paragraph.runs:
-            if run.font.name != 'Times New Roman' or run.font.size != Pt(12):
-                correct_font = False
-                break
+            if paragraph.style.name not in ['Title', 'Heading 1']:  # Skip styled headers
+    for run in paragraph.runs:
+        if run.font.name != 'Times New Roman' or run.font.size != Pt(12):
+            correct_font = False
+            break
     checklist_data["Completed"].append("Yes" if correct_font else "No")
 
     # Check line spacing
