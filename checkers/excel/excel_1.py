@@ -13,7 +13,7 @@ def check_excel_1(workbook):
          "Are cells A13:F13 merged in row 13?",
          "Does cell A13 have a background color?"
             ],
-            "Completed": []
+    "Completed": []
         }
 
     # Check number of columns (should be 6)
