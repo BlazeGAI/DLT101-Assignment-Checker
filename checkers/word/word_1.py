@@ -58,7 +58,6 @@ def check_word_1(doc):
                      not any(run.bold for run in title_paragraph.runs))
     checklist_data["Completed"].append("Yes" if title_centered else "No")
 
-    # Check paragraph count
     paragraph_count = sum(
         1 for p in doc.paragraphs
         if len(p.text.strip()) > 0 and  # Non-empty text
@@ -67,10 +66,10 @@ def check_word_1(doc):
     )
     sufficient_paragraphs = paragraph_count >= 3
     checklist_data["Completed"].append("Yes" if sufficient_paragraphs else "No")
-
+    
+    # Debugging: Print each paragraph's content and check if it's a page break
     for p in doc.paragraphs:
-    print(f"Paragraph: '{p.text.strip()}', Is Page Break: {p._element.xml.startswith('<w:p><w:r><w:br w:type=\"page\"/>')}")
-
+        print(f"Paragraph: '{p.text.strip()}', Is Page Break: {p._element.xml.startswith('<w:p><w:r><w:br w:type=\"page\"/>')}")
 
     # Check paragraph indentation
     proper_indentation = all(
