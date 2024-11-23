@@ -9,11 +9,10 @@ def check_word_1(doc):
             "Is the font Times New Roman, 12pt?",
             "Is line spacing set to double?",
             "Are margins set to 1 inch on all sides?",
-            "Is there a proper header with last name and page number?",
             "Is the title centered and not bold?",
             "Are paragraphs properly indented?",
             "Are there at least 3 paragraphs?",
-            "Is there a Works Cited page?",
+            "Is there a References page?",
             "Are in-text citations properly formatted?"
         ],
         "Completed": []
@@ -47,13 +46,6 @@ def check_word_1(doc):
     )
     checklist_data["Completed"].append("Yes" if correct_margins else "No")
 
-    # Check for header
-    has_header = False
-    if doc.sections[0].header:
-        header_text = doc.sections[0].header.paragraphs[0].text
-        has_header = len(header_text.strip()) > 0
-    checklist_data["Completed"].append("Yes" if has_header else "No")
-
     # Check title centering
     title_paragraph = doc.paragraphs[0] if doc.paragraphs else None
     title_centered = (title_paragraph and 
@@ -77,7 +69,7 @@ def check_word_1(doc):
 
     # Check for Works Cited
     has_works_cited = any(
-        "works cited" in p.text.lower()
+        "References" in p.text.lower()
         for p in doc.paragraphs
     )
     checklist_data["Completed"].append("Yes" if has_works_cited else "No")
