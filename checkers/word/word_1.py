@@ -104,11 +104,6 @@ def check_word_1(doc):
     sufficient_paragraphs = len(body_paragraphs) >= 3
     checklist_data["Completed"].append("Yes" if sufficient_paragraphs else "No")
 
-    except Exception as e:
-        print(f"Error in paragraph checking: {str(e)}")  # Debug print
-        while len(checklist_data["Completed"]) < len(checklist_data["Grading Criteria"]):
-            checklist_data["Completed"].append("No")
-
     # Check paragraph indentation
     proper_indentation = all(
         p.paragraph_format.first_line_indent is not None and
