@@ -75,9 +75,14 @@ if uploaded_file:
         correct_title = False
         for chart in sheet._charts:
             if hasattr(chart, 'title') and chart.title is not None:
-                if "POPULATION OF THE 20 SAMPLE COUNTRIES" in str(chart.title):
+                chart_title = str(chart.title).upper().replace(" ", "")
+                expected_title = "POPULATION OF THE 20 SAMPLE COUNTRIES".upper().replace(" ", "")
+                if chart_title == expected_title:
                     correct_title = True
                     break
+                # For debugging
+                st.write(f"Found title: {chart_title}")
+                st.write(f"Expected title: {expected_title}")
         checklist_data["Completed"].append("Yes" if correct_title else "No")
 
         # Check for GDP chart with gradient fill
