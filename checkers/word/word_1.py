@@ -58,18 +58,31 @@ def check_word_1(doc):
                      not any(run.bold for run in title_paragraph.runs))
     checklist_data["Completed"].append("Yes" if title_centered else "No")
 
-    paragraph_count = sum(
-        1 for p in doc.paragraphs
-        if len(p.text.strip()) > 0 and  # Non-empty text
-        not p._element.xml.startswith('<w:p><w:r><w:br w:type="page"/>') and  # Ignore page breaks
-        p.style.name not in ['Title', 'Heading 1']  # Skip non-body styles
-    )
-    sufficient_paragraphs = paragraph_count >= 3
-    checklist_data["Completed"].append("Yes" if sufficient_paragraphs else "No")
-    
-    # Debugging: Print each paragraph's content and check if it's a page break
+    # Paragraph counting
+    body_paragraphs = []
     for p in doc.paragraphs:
-        print(f"Paragraph: '{p.text.strip()}', Is Page Break: {p._element.xml.startswith('<w:p><w:r><w:br w:type=\"page\"/>')}")
+        # Skip empty paragraphs
+        if not p.text.strip():
+            continue
+        
+        # Skip header paragraphs
+        if p.paragraph_format.line_spacing is None and len(p.text.strip()) < 50:
+            continue
+            
+        # Skip title
+        if p == doc.paragraphs[0]:
+            continue
+            
+        # Skip Works Cited
+        if "works cited" in p.text.lower():
+            continue
+            
+        # Count as body paragraph if it has substantial text
+        if len(p.text.strip()) > 50:  # Assuming a paragraph has at least 50 characters
+            body_paragraphs.append(p)
+
+    sufficient_paragraphs = len(body_paragraphs) >= 3
+    checklist_data["Completed"].append("Yes" if sufficient_paragraphs else "No")
 
     # Check paragraph indentation
     proper_indentation = all(
