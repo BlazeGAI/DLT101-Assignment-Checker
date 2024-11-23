@@ -23,7 +23,6 @@ if uploaded_file:
                 "Are the columns banded color?",
                 "Are the headers in row 1 bolded?",
                 "Are all borders and a thick outside border applied to the table?",
-                "Is the extra column meaningful and consistent with the other data?",
                 "Is the ChatGPT hyperlink centered in cell A13?",
                 "Are cells A13:F13 merged in row 13?",
                 "Does cell A13 have a background color?"
@@ -67,9 +66,6 @@ if uploaded_file:
             for col in range(1, 12)
         )
         checklist_data["Completed"].append("Yes" if all_borders_applied else "No")
-
-        # Extra column check (this would need manual verification)
-        checklist_data["Completed"].append("Manual Check Required")
 
         # Check ChatGPT link alignment
         center_aligned = sheet['A13'].alignment.horizontal == 'center'
