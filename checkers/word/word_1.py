@@ -1,6 +1,8 @@
 from docx.shared import Pt, RGBColor
 from docx.enum.text import WD_ALIGN_PARAGRAPH
 from docx.enum.style import WD_STYLE_TYPE
+from docx.oxml.ns import qn
+from docx.oxml import OxmlElement
 
 def check_word_1(doc):
     checklist_data = {
@@ -55,15 +57,24 @@ def check_word_1(doc):
                      not any(run.bold for run in title_paragraph.runs))
     checklist_data["Completed"].append("Yes" if title_centered else "No")
 
-    # Improved paragraph and indentation checking
+    # Improved paragraph counting with page break detection
     body_paragraphs = []
     in_references = False
+    header_count = 0
     
     for i, p in enumerate(doc.paragraphs):
         text = p.text.strip()
         
         # Skip empty paragraphs
         if not text:
+            # Check if paragraph contains a page break
+            if any(br.type == qn('w:pageBreak') for br in p._element.findall('.//w:br', {'w': 'http://schemas.openxmlformats.org/wordprocessingml/2006/main'})):
+                continue
+            continue
+            
+        # Count header lines (typically name, course, professor, date)
+        if header_count < 5 and text:
+            header_count += 1
             continue
             
         # Check for references section
@@ -75,17 +86,21 @@ def check_word_1(doc):
         if in_references:
             continue
             
-        # Skip header information (first few lines)
-        if i < 5:  # Assuming first 5 lines are header
-            continue
-            
         # Skip conclusion
         if text.lower().startswith('in conclusion'):
             continue
             
-        # Count as body paragraph if it's substantial (more than 50 characters)
-        if len(text) > 50:
-            body_paragraphs.append(p)
+        # Check if paragraph has actual content (more than just a page break)
+        if len(text) > 50:  # Substantial paragraph
+            # Check if this paragraph is not just a header line
+            if not any(header_marker in text.lower() for header_marker in 
+                      ['university', 'professor', 'course', 'date:']):
+                body_paragraphs.append(p)
+
+    # Debug print for paragraph contents
+    print(f"Found {len(body_paragraphs)} body paragraphs:")
+    for i, p in enumerate(body_paragraphs, 1):
+        print(f"Paragraph {i}: {p.text[:50]}...")
 
     # Check for proper indentation
     proper_indentation = all(
@@ -103,12 +118,17 @@ def check_word_1(doc):
     has_references = False
     references_content = False
     for p in doc.paragraphs:
+        # Check for page break before references
+        if any(br.type == qn('w:pageBreak') for br in p._element.findall('.//w:br', {'w': 'http://schemas.openxmlformats.org/wordprocessingml/2006/main'})):
+            continue
+        
         if p.text.strip().lower() == 'references':
             has_references = True
-        # Check if there's actually content in the references section
         elif has_references and p.text.strip():
-            references_content = True
-            break
+            if any(year in p.text for year in [str(y) for y in range(1900, 2025)]):
+                references_content = True
+                break
+    
     checklist_data["Completed"].append("Yes" if (has_references and references_content) else "No")
 
     # Improved citation check
