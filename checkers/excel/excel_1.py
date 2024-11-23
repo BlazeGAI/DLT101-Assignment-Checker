@@ -1,3 +1,5 @@
+from openpyxl.styles import Alignment, Font, PatternFill
+
 def check_excel_1(workbook):
     sheet = workbook.active
     checklist_data = {
