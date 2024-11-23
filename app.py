@@ -1,9 +1,11 @@
 import streamlit as st
+import pandas as pd
 from utils.display import display_results
 from checkers.excel.excel_1 import check_excel_1
 from checkers.excel.excel_2 import check_excel_2
 from checkers.excel.excel_3 import check_excel_3
 from openpyxl import load_workbook
+from openpyxl.styles import Alignment, Font, PatternFill
 
 st.title("Assignment Checker")
 
