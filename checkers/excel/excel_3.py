@@ -118,18 +118,4 @@ def check_excel_3(workbook):
                               sheet['A26'].fill.fill_type is not None)
     checklist_data["Completed"].append("Yes" if background_color_present else "No")
 
-    # Display results
-    st.subheader("Checklist Results")
-    checklist_df = pd.DataFrame(checklist_data)
-    st.table(checklist_df)
-
-    # Calculate percentage complete and points
-    total_yes = checklist_data["Completed"].count("Yes")
-    total_items = len(checklist_data["Completed"])
-    percentage_complete = (total_yes / total_items) * 100
-    points = (total_yes / total_items) * 20
-
-    # Create two columns for displaying scores
-    col1, col2 = st.columns(2)
-
     return checklist_data
