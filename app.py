@@ -76,7 +76,7 @@ if uploaded_file:
         for chart in sheet._charts:
             if hasattr(chart, 'title') and chart.title is not None:
                 if hasattr(chart.title, 'tx') and hasattr(chart.title.tx, 'rich'):
-                    title_text = chart.title.tx.rich.paragraphs[0].text
+                    title_text = str(chart.title.tx.rich.paragraphs[0].text)  # Convert to string
                     chart_title = title_text.upper().strip()
                     expected_title = "POPULATION OF THE 20 SAMPLE COUNTRIES".upper().strip()
                     if chart_title == expected_title:
