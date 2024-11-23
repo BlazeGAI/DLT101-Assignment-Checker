@@ -58,30 +58,40 @@ def check_word_1(doc):
                      not any(run.bold for run in title_paragraph.runs))
     checklist_data["Completed"].append("Yes" if title_centered else "No")
 
-    # Simpler paragraph counting
+    # Improved paragraph counting
     body_paragraphs = []
+    in_references = False
     
-    for i, p in enumerate(doc.paragraphs):
+    for p in doc.paragraphs:
         text = p.text.strip()
         
         # Skip empty paragraphs
         if not text:
             continue
             
-        # Skip if it's the title or header info (first few paragraphs)
-        if i < 3:
+        # Check if we've reached the references section
+        if text.lower() == 'references':
+            in_references = True
             continue
             
-        # Skip if it's references or conclusion
-        if text.lower().startswith(('references', 'works cited', 'in conclusion')):
+        # Skip references section
+        if in_references:
             continue
             
-        # Count substantial paragraphs
-        if len(text) > 50:
+        # Skip title and header info
+        if any(keyword in text for keyword in ['University', 'Professor', 'DLT']):
+            continue
+            
+        # Skip conclusion
+        if text.lower().startswith('in conclusion'):
+            continue
+            
+        # Count substantial paragraphs that aren't title or header
+        if len(text) > 100 and not text.startswith('The Effects of'):
             body_paragraphs.append(text)
-            print(f"Found paragraph: {text[:50]}...")  # Debug print
+            print(f"Found body paragraph: {text[:50]}...")  # Debug print
 
-    print(f"Total body paragraphs found: {len(body_paragraphs)}")  # Debug print
+    print(f"Number of body paragraphs: {len(body_paragraphs)}")  # Debug print
     sufficient_paragraphs = len(body_paragraphs) >= 3
     checklist_data["Completed"].append("Yes" if sufficient_paragraphs else "No")
 
