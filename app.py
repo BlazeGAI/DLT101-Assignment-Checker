@@ -12,80 +12,114 @@ if uploaded_file:
     try:
         # Load the Excel file with openpyxl
         workbook = load_workbook(uploaded_file)
-        sheet = workbook.active
-
-        # Initialize checklist data
+        
         checklist_data = {
             "Grading Criteria": [
-                "Are there 6 columns A-F?",
-                "Are there exactly 10 rows of data in the dataset?",
-                "Are the first 5 column headers named ID, First Name, Last Name, Date of Birth, Hometown?",
-                "Does the last column have a meaningful header and consistent data?",
-                "Are the columns banded color?",
-                "Are the headers in row 1 bolded?",
-                "Are all borders and a thick outside border applied to the table?",
-                "Is the ChatGPT hyperlink centered in cell A13?",
-                "Are cells A13:F13 merged in row 13?",
-                "Does cell A13 have a background color?"
+                "Is the worksheet named 'Countries'?",
+                "Are there 4 columns (Country, Continent, Population, GDP per Capita)?",
+                "Does the table contain exactly 20 countries with data?",
+                "Are the rows styled by continent?",
+                "Is there a Population column chart positioned correctly?",
+                "Is the Population chart titled 'POPULATION OF THE 20 SAMPLE COUNTRIES'?",
+                "Is there a GDP per Capita chart with gradient fill?",
+                "Is the GDP chart positioned below the Population chart?",
+                "Is the table sorted by Population (largest to smallest)?",
+                "Does row 22 contain SUM formulas for Population and GDP?",
+                "Does row 23 contain AVERAGE formulas for Population and GDP?",
+                "Is the ChatGPT link in merged cells A26:E26?",
+                "Is the ChatGPT link centered?",
+                "Does the ChatGPT link cell have a background color?"
             ],
             "Completed": []
         }
 
-        # Check number of columns (should be 6)
-        num_columns = sheet.max_column
-        checklist_data["Completed"].append("Yes" if num_columns == 6 else "No")
+        # Check worksheet name
+        sheet_name_correct = 'Countries' in workbook.sheetnames
+        sheet = workbook['Countries'] if sheet_name_correct else workbook.active
+        checklist_data["Completed"].append("Yes" if sheet_name_correct else "No")
 
-        # Check number of rows of data (should be 10)
-        data_rows = sum(1 for row in range(2, 12) if any(sheet.cell(row=row, column=col).value for col in range(1, 7)))
-        checklist_data["Completed"].append("Yes" if data_rows == 10 else "No")
-
-        # Check first 5 column headers
-        expected_headers = ["ID", "First Name", "Last Name", "Date of Birth", "Hometown"]
-        headers = [sheet.cell(row=1, column=i).value for i in range(1, 6)]
+        # Check column headers
+        expected_headers = ["Country", "Continent", "Population", "GDP per Capita"]
+        headers = [sheet.cell(row=1, column=i).value for i in range(1, 5)]
         headers_match = all(a == b for a, b in zip(headers, expected_headers))
         checklist_data["Completed"].append("Yes" if headers_match else "No")
 
-        # Check if last column has a header and data
-        last_col_header = sheet.cell(row=1, column=6).value
-        last_col_has_data = any(sheet.cell(row=i, column=6).value for i in range(2, 12))
-        checklist_data["Completed"].append("Yes" if last_col_header and last_col_has_data else "No")
+        # Check for 20 countries with data
+        data_rows = sum(1 for row in range(2, 22) if all(sheet.cell(row=row, column=col).value 
+                   for col in range(1, 5)))
+        checklist_data["Completed"].append("Yes" if data_rows == 20 else "No")
 
-        # Check for banded colors
-        has_banded_colors = False
-        for row in range(2, 12):  # Check rows 2-11
-            if row % 2 == 0:
-                if (sheet.cell(row=row, column=1).fill.start_color.index != 
-                    sheet.cell(row=row-1, column=1).fill.start_color.index):
-                    has_banded_colors = True
+        # Check for continent-based styling
+        different_styles = False
+        current_continent = None
+        current_fill = None
+        for row in range(2, 22):
+            continent = sheet.cell(row=row, column=2).value
+            fill = sheet.cell(row=row, column=1).fill
+            if continent != current_continent:
+                if current_continent is not None and fill != current_fill:
+                    different_styles = True
+                current_continent = continent
+                current_fill = fill
+        checklist_data["Completed"].append("Yes" if different_styles else "No")
+
+        # Check for Population chart
+        has_population_chart = False
+        for chart in sheet._charts:
+            if hasattr(chart, 'title') and chart.title is not None:
+                has_population_chart = True
+                break
+        checklist_data["Completed"].append("Yes" if has_population_chart else "No")
+
+        # Check Population chart title
+        correct_title = False
+        for chart in sheet._charts:
+            if hasattr(chart, 'title') and chart.title is not None:
+                if "POPULATION OF THE 20 SAMPLE COUNTRIES" in str(chart.title):
+                    correct_title = True
                     break
-        checklist_data["Completed"].append("Yes" if has_banded_colors else "No")
+        checklist_data["Completed"].append("Yes" if correct_title else "No")
 
-        # Check if headers are bold
-        headers_bold = all(
-            sheet.cell(row=1, column=col).font.bold
-            for col in range(1, 7)
-        )
-        checklist_data["Completed"].append("Yes" if headers_bold else "No")
+        # Check for GDP chart with gradient fill
+        has_gdp_chart = len(sheet._charts) >= 2
+        checklist_data["Completed"].append("Yes" if has_gdp_chart else "No")
 
-        # Check borders
-        all_borders_applied = all(
-            sheet.cell(row=row, column=col).border is not None
-            for row in range(1, 12)
-            for col in range(1, 7)
-        )
-        checklist_data["Completed"].append("Yes" if all_borders_applied else "No")
+        # Check GDP chart position (below Population chart)
+        charts_positioned_correctly = len(sheet._charts) >= 2
+        checklist_data["Completed"].append("Yes" if charts_positioned_correctly else "No")
 
-        # Check ChatGPT link alignment in A13
-        center_aligned = sheet['A13'].alignment.horizontal == 'center'
+        # Check if sorted by Population (largest to smallest)
+        is_sorted = True
+        prev_value = float('inf')
+        for row in range(2, 22):
+            current_value = sheet.cell(row=row, column=3).value
+            if isinstance(current_value, (int, float)) and current_value > prev_value:
+                is_sorted = False
+                break
+            prev_value = current_value if isinstance(current_value, (int, float)) else float('inf')
+        checklist_data["Completed"].append("Yes" if is_sorted else "No")
+
+        # Check for SUM formulas in row 22
+        total_population_formula = sheet['C22'].data_type == 'f'
+        total_gdp_formula = sheet['D22'].data_type == 'f'
+        checklist_data["Completed"].append("Yes" if total_population_formula and total_gdp_formula else "No")
+
+        # Check for AVERAGE formulas in row 23
+        avg_population_formula = sheet['C23'].data_type == 'f'
+        avg_gdp_formula = sheet['D23'].data_type == 'f'
+        checklist_data["Completed"].append("Yes" if avg_population_formula and avg_gdp_formula else "No")
+
+        # Check ChatGPT link merged cells
+        merged_link = any("A26:E26" in str(range) for range in sheet.merged_cells.ranges)
+        checklist_data["Completed"].append("Yes" if merged_link else "No")
+
+        # Check ChatGPT link alignment
+        center_aligned = sheet['A26'].alignment.horizontal == 'center'
         checklist_data["Completed"].append("Yes" if center_aligned else "No")
 
-        # Check merged cells A13:F13
-        merged_in_row_13 = any("A13:F13" in str(range) for range in sheet.merged_cells.ranges)
-        checklist_data["Completed"].append("Yes" if merged_in_row_13 else "No")
-
-        # Check background color in A13
-        background_color_present = (sheet['A13'].fill is not None and 
-                                  sheet['A13'].fill.fill_type is not None)
+        # Check ChatGPT link background color
+        background_color_present = (sheet['A26'].fill is not None and 
+                                  sheet['A26'].fill.fill_type is not None)
         checklist_data["Completed"].append("Yes" if background_color_present else "No")
 
         # Display results
