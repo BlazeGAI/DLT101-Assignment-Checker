@@ -68,6 +68,10 @@ def check_word_1(doc):
     sufficient_paragraphs = paragraph_count >= 3
     checklist_data["Completed"].append("Yes" if sufficient_paragraphs else "No")
 
+    for p in doc.paragraphs:
+    print(f"Paragraph: '{p.text.strip()}', Is Page Break: {p._element.xml.startswith('<w:p><w:r><w:br w:type=\"page\"/>')}")
+
+
     # Check paragraph indentation
     proper_indentation = all(
         p.paragraph_format.first_line_indent is not None and
