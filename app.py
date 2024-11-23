@@ -75,38 +75,20 @@ if uploaded_file:
         correct_title = False
         for chart in sheet._charts:
             if hasattr(chart, 'title') and chart.title is not None:
-                # Debug print all available attributes
-                st.write("Chart title object attributes:")
-                st.write(dir(chart.title))
-                
-                # Try to get title text directly
-                try:
-                    if hasattr(chart.title, 'tx'):
-                        st.write("TX attributes:")
-                        st.write(dir(chart.title.tx))
-                        
-                        if hasattr(chart.title.tx, 'rich'):
-                            for p in chart.title.tx.rich.paragraphs:
-                                # Print the entire paragraph object
-                                st.write("Paragraph content:")
-                                st.write(p.__dict__)
-                                
-                                if hasattr(p, '_r'):
-                                    for run in p._r:
-                                        # Print the run object
-                                        st.write("Run content:")
-                                        st.write(run.__dict__)
-                                        
-                                        if hasattr(run, 't'):
-                                            chart_title = str(run.t).upper().strip()
-                                            expected_title = "POPULATION OF THE 20 SAMPLE COUNTRIES".upper().strip()
-                                            st.write(f"Comparing: '{chart_title}' with '{expected_title}'")
-                                            if chart_title == expected_title:
-                                                correct_title = True
-                                                break
-                except Exception as e:
-                    st.write(f"Error accessing title: {str(e)}")
-        
+                if hasattr(chart.title, 'tx') and hasattr(chart.title.tx, 'rich'):
+                    for p in chart.title.tx.rich.paragraphs:
+                        if hasattr(p, 'r'):
+                            for run in p.r:
+                                if hasattr(run, 't'):
+                                    chart_title = str(run.t).strip()
+                                    expected_title = "Population of the 20 sample countries"
+                                    # Case-insensitive comparison
+                                    if chart_title.lower() == expected_title.lower():
+                                        correct_title = True
+                                        break
+                                    # For debugging
+                                    st.write(f"Found title: {chart_title}")
+                                    st.write(f"Expected title: {expected_title}")
         checklist_data["Completed"].append("Yes" if correct_title else "No")
 
         # Check for GDP chart with gradient fill
