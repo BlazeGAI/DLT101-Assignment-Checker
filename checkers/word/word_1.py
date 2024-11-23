@@ -59,7 +59,12 @@ def check_word_1(doc):
     checklist_data["Completed"].append("Yes" if title_centered else "No")
 
     # Check paragraph count
-    paragraph_count = sum(1 for p in doc.paragraphs if len(p.text.strip()) > 0)
+    paragraph_count = sum(
+        1 for p in doc.paragraphs
+        if len(p.text.strip()) > 0 and  # Non-empty text
+        not p._element.xml.startswith('<w:p><w:r><w:br w:type="page"/>') and  # Ignore page breaks
+        p.style.name not in ['Title', 'Heading 1']  # Skip non-body styles
+    )
     sufficient_paragraphs = paragraph_count >= 3
     checklist_data["Completed"].append("Yes" if sufficient_paragraphs else "No")
 
