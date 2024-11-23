@@ -58,29 +58,30 @@ def check_word_1(doc):
                      not any(run.bold for run in title_paragraph.runs))
     checklist_data["Completed"].append("Yes" if title_centered else "No")
 
-    # Paragraph counting
+    # Improved paragraph counting
     body_paragraphs = []
     for p in doc.paragraphs:
-        # Skip empty paragraphs
-        if not p.text.strip():
+        text = p.text.strip()
+        # Skip if empty or very short
+        if len(text) < 20:
             continue
         
-        # Skip header paragraphs
-        if p.paragraph_format.line_spacing is None and len(p.text.strip()) < 50:
+        # Skip title, header info, and references
+        if any(keyword in text.lower() for keyword in ['references', 'works cited']):
+            continue
+        if p == doc.paragraphs[0]:  # Skip title
+            continue
+        if 'university' in text.lower():  # Skip header info
             continue
             
-        # Skip title
-        if p == doc.paragraphs[0]:
-            continue
-            
-        # Skip Works Cited
-        if "works cited" in p.text.lower():
+        # Skip conclusion paragraph
+        if text.lower().startswith('in conclusion'):
             continue
             
         # Count as body paragraph if it has substantial text
-        if len(p.text.strip()) > 50:  # Assuming a paragraph has at least 50 characters
+        if len(text) > 100:  # Typical paragraph length
             body_paragraphs.append(p)
-
+    
     sufficient_paragraphs = len(body_paragraphs) >= 3
     checklist_data["Completed"].append("Yes" if sufficient_paragraphs else "No")
 
