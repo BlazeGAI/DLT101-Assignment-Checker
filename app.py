@@ -5,7 +5,7 @@ from checkers.excel.excel_2 import check_excel_2
 from checkers.excel.excel_3 import check_excel_3
 from openpyxl import load_workbook
 
-st.title("Excel Assignment Checker")
+st.title("Assignment Checker")
 
 # Create stacked file uploaders
 st.subheader("Excel Assignment 1")
