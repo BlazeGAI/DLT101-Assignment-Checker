@@ -1,3 +1,6 @@
+import pandas as pd
+from openpyxl.styles import Alignment, Font, PatternFill
+
 def check_excel_2(workbook):
     sheet_names = workbook.sheetnames
     alumni_sheet_present = (sheet_names[0] == "Alumni")
