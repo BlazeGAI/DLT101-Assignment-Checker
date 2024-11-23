@@ -7,7 +7,7 @@ from checkers.excel.excel_3 import check_excel_3
 from openpyxl import load_workbook
 from openpyxl.styles import Alignment, Font, PatternFill
 
-st.title("Assignment Checker")
+st.title("DLT101 Assignment Checker")
 
 # Create stacked file uploaders
 st.subheader("Excel Assignment 1")
