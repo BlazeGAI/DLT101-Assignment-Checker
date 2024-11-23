@@ -1,3 +1,5 @@
+from openpyxl.styles import Alignment, Font, PatternFill
+
 def check_excel_3(workbook):
     checklist_data = {
     "Grading Criteria": [
