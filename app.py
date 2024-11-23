@@ -36,8 +36,8 @@ if uploaded_file:
         checklist_data["Completed"].append("Yes" if num_columns == 6 else "No")
 
         # Check number of rows of data (should be 10)
-        num_data_rows = sheet.max_row - 1  # Subtract 1 for header row
-        checklist_data["Completed"].append("Yes" if num_data_rows == 10 else "No")
+        data_rows = sum(1 for row in range(2, 12) if any(sheet.cell(row=row, column=col).value for col in range(1, 7)))
+        checklist_data["Completed"].append("Yes" if data_rows == 10 else "No")
 
         # Check first 5 column headers
         expected_headers = ["ID", "First Name", "Last Name", "Date of Birth", "Hometown"]
