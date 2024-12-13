@@ -25,7 +25,7 @@ def check_excel_final(workbook):
         sheet.cell(row=row, column=11).value = f"=IF(F{row}>=6, \"No training is needed\", \"Need to take training\")"
 
     # Create charts on Sheet 1
-    chart_sheet = workbook["Data Analysis"]
+    chart_sheet = workbook["Workplace Productivity"]
 
     # Bar chart for Training Hours
     bar_chart = BarChart()
@@ -46,8 +46,7 @@ def check_excel_final(workbook):
     chart_sheet.add_chart(pie_chart, "L16")
 
     # Create a new sheet for Department Analysis
-    dept_sheet = workbook.create_sheet("Department Analysis")
-    dept_sheet.append(["Department", "Number of Employees"])
+    dept_sheet = workbook["Department Distribution"]
 
     # Calculate number of employees by department
     departments = {}
@@ -64,7 +63,7 @@ def check_excel_final(workbook):
     categories = Reference(dept_sheet, min_col=1, min_row=2, max_row=len(departments) + 1)
     pie_chart_dept.add_data(data, titles_from_data=True)
     pie_chart_dept.set_categories(categories)
-    pie_chart_dept.title = "Employees by Department"
+    pie_chart_dept.title = "Department Distribution"
     dept_sheet.add_chart(pie_chart_dept, "E5")
 
     # Return checklist data as a success message or result
