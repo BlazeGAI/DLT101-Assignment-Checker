@@ -38,10 +38,15 @@ def check_excel_final(workbook):
     headers_match = all(a == b for a, b in zip(headers, expected_headers))
     checklist_data["Completed"].append("Yes" if headers_match else "No")
 
-    # Check summary row
-    summary_row_correct = (wp_sheet['A17'].value == 'Company Averages' and
-                            isinstance(wp_sheet['C17'].value, (int, float)))
+
+    # Validate that 'Company Averages' is in merged cells A17:B17
+    merged_cell_label = wp_sheet['A17'].value
+    summary_row_correct = (
+        isinstance(merged_cell_label, str) and
+        merged_cell_label.strip().lower() == 'company averages'
+    )
     checklist_data["Completed"].append("Yes" if summary_row_correct else "No")
+
 
     # Check for charts in 'Workplace Productivity'
     wp_charts = [chart for chart in wp_sheet._charts]
@@ -72,24 +77,30 @@ def check_excel_final(workbook):
     data_complete = all(all(wp_sheet.cell(row=row, column=col).value is not None for col in range(1, 12)) for row in range(2, 17))
     checklist_data["Completed"].append("Yes" if data_complete else "No")
 
-    # Check summary row accuracy
-    total_score = 0
-    valid_rows = 0
-
-    for row in range(2, 17):
-        value = wp_sheet.cell(row=row, column=3).value
-        if isinstance(value, (int, float)):
-            total_score += value
-            valid_rows += 1
-        elif isinstance(value, str):
-            try:
-                total_score += float(value)
-                valid_rows += 1
-            except ValueError:
-                pass  # Ignore non-numeric values
-
-    average_score = total_score / valid_rows if valid_rows > 0 else 0
-    summary_correct = abs(average_score - wp_sheet['C17'].value) < 0.1 if isinstance(wp_sheet['C17'].value, (int, float)) else False
+    # Validate the averages in C17:J17
+    summary_correct = True
+    
+    for col in range(3, 11):  # Columns C (3) to J (10)
+        total = 0
+        count = 0
+        for row in range(2, 17):  # Rows 2 to 16
+            value = wp_sheet.cell(row=row, column=col).value
+            if isinstance(value, (int, float)):
+                total += value
+                count += 1
+            elif isinstance(value, str):  # Convert numeric strings
+                try:
+                    total += float(value)
+                    count += 1
+                except ValueError:
+                    pass  # Ignore invalid strings
+    
+        calculated_average = total / count if count > 0 else 0
+        cell_value = wp_sheet.cell(row=17, column=col).value
+    
+        if not (isinstance(cell_value, (int, float)) and abs(calculated_average - cell_value) < 0.1):
+            summary_correct = False  # Mark as incorrect if any column average doesn't match
+    
     checklist_data["Completed"].append("Yes" if summary_correct else "No")
 
     # Check sorting
