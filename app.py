@@ -56,9 +56,7 @@ if excel_3_file:
 if excel_final_file:
     try:
         workbook = load_workbook(excel_final_file)
-        # Assuming a function named `check_excel_final` exists
-        from checkers.excel.excel_final import check_excel_final
-        checklist_data = check_excel_final(workbook)
+        checklist_data = check_excel_final(workbook)  # Pass workbook directly
         st.subheader("Excel Final Assignment Results")
         display_results(checklist_data)
     except Exception as e:
