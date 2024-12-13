@@ -5,7 +5,7 @@ from openpyxl.chart import PieChart, Reference, BarChart
 # Load the provided dataset
 workbook = load_workbook(workbook)
 sheet = workbook.active
-sheet.title = "Data Analysis"
+return checklist_data
 
 # Ensure columns are labeled correctly
 column_headers = ["Employee ID", "Name", "Department", "Training Hours", "Tasks Completed", "Digital Skills", "Column G", "Column H", "Column I", "Column J"]
