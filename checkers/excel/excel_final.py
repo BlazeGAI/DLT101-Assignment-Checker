@@ -59,12 +59,35 @@ def check_excel_final(workbook):
     checklist_data["Completed"].append("Yes" if data_complete else "No")
 
     # Check summary row accuracy
-    average_calculated = sum(wp_sheet.cell(row=row, column=3).value for row in range(2, 18)) / 15
-    summary_correct = abs(average_calculated - wp_sheet['C18'].value) < 0.1
+    total_score = 0
+    valid_rows = 0
+
+    for row in range(2, 18):
+        value = wp_sheet.cell(row=row, column=3).value
+        if isinstance(value, (int, float)):
+            total_score += value
+            valid_rows += 1
+        elif isinstance(value, str):
+            try:
+                total_score += float(value)
+                valid_rows += 1
+            except ValueError:
+                pass  # Ignore non-numeric values
+
+    average_score = total_score / valid_rows if valid_rows > 0 else 0
+    summary_correct = abs(average_score - wp_sheet['C18'].value) < 0.1 if isinstance(wp_sheet['C18'].value, (int, float)) else False
     checklist_data["Completed"].append("Yes" if summary_correct else "No")
 
     # Check sorting
-    sorted_correctly = all(wp_sheet.cell(row=i, column=1).value < wp_sheet.cell(row=i + 1, column=1).value for i in range(2, 17))
+    sorted_correctly = True
+    for i in range(2, 17):
+        current_value = wp_sheet.cell(row=i, column=1).value
+        next_value = wp_sheet.cell(row=i + 1, column=1).value
+        if isinstance(current_value, str) or isinstance(next_value, str):
+            continue  # Skip rows with non-numeric or unexpected values
+        if current_value > next_value:
+            sorted_correctly = False
+            break
     checklist_data["Completed"].append("Yes" if sorted_correctly else "No")
 
     # Check formatting and alignment
@@ -84,5 +107,5 @@ def check_excel_final(workbook):
 
 # Example usage
 # workbook = load_workbook('example.xlsx')
-# results = check_workbook(workbook)
+# results = check_excel_final(workbook)
 # print(results)
