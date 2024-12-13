@@ -3,7 +3,7 @@ from openpyxl.styles import Alignment, Font
 from openpyxl.chart import PieChart, Reference, BarChart
 
 # Load the provided dataset
-workbook = load_workbook('Final Project Dataset.xlsx')
+workbook = load_workbook(workbook)
 sheet = workbook.active
 sheet.title = "Data Analysis"
 
