@@ -39,30 +39,44 @@ def check_excel_final(workbook):
     checklist_data["Completed"].append("Yes" if headers_match else "No")
 
     # Check summary row
-    summary_row_correct = (wp_sheet['B18'].value == 'Company Averages' and
-                            isinstance(wp_sheet['C18'].value, (int, float)))
+    summary_row_correct = (wp_sheet['A17'].value == 'Company Averages' and
+                            isinstance(wp_sheet['C17'].value, (int, float)))
     checklist_data["Completed"].append("Yes" if summary_row_correct else "No")
 
     # Check for charts in 'Workplace Productivity'
     wp_charts = [chart for chart in wp_sheet._charts]
-    has_digital_skills_chart = any(chart.title == "Digital Skills Scores by Department" for chart in wp_charts)
-    has_training_output_chart = any(chart.title == "Hours of Training Completed and Reported Weekly Output" for chart in wp_charts)
+
+    def check_chart_title(chart, expected_title):
+        """Check chart titles in a case-insensitive manner."""
+        if hasattr(chart, 'title') and chart.title is not None:
+            if isinstance(chart.title, str):
+                return chart.title.strip().lower() == expected_title.strip().lower()
+            elif hasattr(chart.title, 'tx') and hasattr(chart.title.tx, 'rich'):
+                for p in chart.title.tx.rich.paragraphs:
+                    for run in p.r:
+                        if hasattr(run, 't') and run.t.strip().lower() == expected_title.strip().lower():
+                            return True
+        return False
+
+    has_digital_skills_chart = any(check_chart_title(chart, "Digital Skills Scores by Department") for chart in wp_charts)
+    has_training_output_chart = any(check_chart_title(chart, "Hours of Training Completed and Reported Weekly Output") for chart in wp_charts)
     checklist_data["Completed"].append("Yes" if has_digital_skills_chart and has_training_output_chart else "No")
 
     # Check 'Department Distribution' table and chart
-    table_correct = dd_sheet.cell(row=1, column=1).value == 'Department' and dd_sheet.cell(row=1, column=2).value == 'Number of Employees'
-    pie_chart_correct = any(chart.title == "Department Distribution" for chart in dd_sheet._charts)
+    table_correct = (dd_sheet.cell(row=1, column=1).value == 'Department' and
+                     dd_sheet.cell(row=1, column=2).value == 'Number of Employees')
+    pie_chart_correct = any(check_chart_title(chart, "Department Distribution") for chart in dd_sheet._charts)
     checklist_data["Completed"].append("Yes" if table_correct and pie_chart_correct else "No")
 
     # Check data completeness
-    data_complete = all(all(wp_sheet.cell(row=row, column=col).value is not None for col in range(1, 12)) for row in range(2, 18))
+    data_complete = all(all(wp_sheet.cell(row=row, column=col).value is not None for col in range(1, 12)) for row in range(2, 17))
     checklist_data["Completed"].append("Yes" if data_complete else "No")
 
     # Check summary row accuracy
     total_score = 0
     valid_rows = 0
 
-    for row in range(2, 18):
+    for row in range(2, 17):
         value = wp_sheet.cell(row=row, column=3).value
         if isinstance(value, (int, float)):
             total_score += value
@@ -75,19 +89,18 @@ def check_excel_final(workbook):
                 pass  # Ignore non-numeric values
 
     average_score = total_score / valid_rows if valid_rows > 0 else 0
-    summary_correct = abs(average_score - wp_sheet['C18'].value) < 0.1 if isinstance(wp_sheet['C18'].value, (int, float)) else False
+    summary_correct = abs(average_score - wp_sheet['C17'].value) < 0.1 if isinstance(wp_sheet['C17'].value, (int, float)) else False
     checklist_data["Completed"].append("Yes" if summary_correct else "No")
 
     # Check sorting
     sorted_correctly = True
-    for i in range(2, 17):
+    for i in range(2, 16):
         current_value = wp_sheet.cell(row=i, column=1).value
         next_value = wp_sheet.cell(row=i + 1, column=1).value
-        if isinstance(current_value, str) or isinstance(next_value, str):
-            continue  # Skip rows with non-numeric or unexpected values
-        if current_value > next_value:
-            sorted_correctly = False
-            break
+        if isinstance(current_value, (int, float)) and isinstance(next_value, (int, float)):
+            if current_value > next_value:
+                sorted_correctly = False
+                break
     checklist_data["Completed"].append("Yes" if sorted_correctly else "No")
 
     # Check formatting and alignment
@@ -99,13 +112,13 @@ def check_excel_final(workbook):
 
     # Check color-coded training requirements
     color_coded = any(
-        wp_sheet.cell(row=row, column=11).fill is not None for row in range(2, 18)
+        wp_sheet.cell(row=row, column=11).fill is not None for row in range(2, 17)
     )
     checklist_data["Completed"].append("Yes" if color_coded else "No")
 
     return checklist_data
 
-# Example usage
-# workbook = load_workbook('example.xlsx')
+# Example usage:
+# workbook = load_workbook('Final Project Example.xlsx')
 # results = check_excel_final(workbook)
 # print(results)
