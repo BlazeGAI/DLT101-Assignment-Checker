@@ -3,6 +3,7 @@ from utils.display import display_results
 from checkers.excel.excel_1 import check_excel_1
 from checkers.excel.excel_2 import check_excel_2
 from checkers.excel.excel_3 import check_excel_3
+from checkers.excel.excel_final import check_excel_final
 from openpyxl import load_workbook
 from docx import Document
 from pptx import Presentation
