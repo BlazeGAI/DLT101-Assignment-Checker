@@ -1,7 +1,7 @@
 from openpyxl.styles import Alignment, Font, PatternFill
 from openpyxl import load_workbook
 
-def check_workbook(workbook):
+def check_excel_final(workbook):
     checklist_data = {
         "Grading Criteria": [
             "Are the worksheet names 'Workplace Productivity' and 'Department Distribution'?",
