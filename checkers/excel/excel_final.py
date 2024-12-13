@@ -1,71 +1,88 @@
-from openpyxl import Workbook, load_workbook
-from openpyxl.styles import Alignment, Font
-from openpyxl.chart import PieChart, Reference, BarChart
+from openpyxl.styles import Alignment, Font, PatternFill
+from openpyxl import load_workbook
 
-def check_excel_final(workbook):
-    # Ensure the workbook object is passed correctly
-    sheet = workbook.active
+def check_workbook(workbook):
+    checklist_data = {
+        "Grading Criteria": [
+            "Are the worksheet names 'Workplace Productivity' and 'Department Distribution'?",
+            "Does 'Workplace Productivity' have the required column headers?",
+            "Does 'Workplace Productivity' have a summary row for company averages?",
+            "Are the required charts present in 'Workplace Productivity'?",
+            "Does 'Department Distribution' contain a table and pie chart?",
+            "Is the data in 'Workplace Productivity' complete?",
+            "Are the averages in the summary row accurate?",
+            "Is the table in 'Workplace Productivity' logically sorted?",
+            "Are the formatting and alignment consistent?",
+            "Is the 'Training Requirements' column color-coded?"
+        ],
+        "Completed": []
+    }
 
-    # Ensure columns are labeled correctly
-    column_headers = ["Employee ID", "Name", "Department", "Training Hours", "Tasks Completed", "Digital Skills", "Column G", "Column H", "Column I", "Column J"]
-    for col_num, header in enumerate(column_headers, start=1):
-        sheet.cell(row=1, column=col_num).value = header
+    # Check worksheet names
+    required_sheets = ['Workplace Productivity', 'Department Distribution']
+    sheet_names_correct = all(sheet in workbook.sheetnames for sheet in required_sheets)
+    checklist_data["Completed"].append("Yes" if sheet_names_correct else "No")
 
-    # Calculate averages for columns C to J
-    for col_num in range(3, 11):
-        avg_formula = f"=AVERAGE({chr(64 + col_num)}2:{chr(64 + col_num)}18)"
-        sheet.cell(row=19, column=col_num).value = avg_formula
+    if not sheet_names_correct:
+        return checklist_data  # Stop further checks if worksheets are missing
 
-    # Calculate total training hours and tasks completed
-    sheet.cell(row=19, column=4).value = "=SUM(D2:D18)"  # Training Hours
-    sheet.cell(row=19, column=5).value = "=SUM(E2:E18)"  # Tasks Completed
+    wp_sheet = workbook['Workplace Productivity']
+    dd_sheet = workbook['Department Distribution']
 
-    # Apply IF statement in column K for Digital Skills
-    for row in range(2, 19):
-        sheet.cell(row=row, column=11).value = f"=IF(F{row}>=6, \"No training is needed\", \"Need to take training\")"
+    # Check column headers
+    expected_headers = ["Employee ID", "Department", "Digital Skills Score (1-10)", "Productivity Rating (1-5)",
+                        "Hours of Training Completed", "Use of Productivity Software (hours/week)",
+                        "Reported Weekly Output (Tasks Completed)", "Years at Company", "Age",
+                        "Remote Work Percentage (%)", "Training Requirements"]
+    headers = [wp_sheet.cell(row=1, column=i).value for i in range(1, len(expected_headers) + 1)]
+    headers_match = all(a == b for a, b in zip(headers, expected_headers))
+    checklist_data["Completed"].append("Yes" if headers_match else "No")
 
-    # Create charts on Sheet 1
-    chart_sheet = workbook["Workplace Productivity"]
+    # Check summary row
+    summary_row_correct = (wp_sheet['B18'].value == 'Company Averages' and
+                            isinstance(wp_sheet['C18'].value, (int, float)))
+    checklist_data["Completed"].append("Yes" if summary_row_correct else "No")
 
-    # Bar chart for Training Hours
-    bar_chart = BarChart()
-    data = Reference(chart_sheet, min_col=4, min_row=1, max_row=18)
-    categories = Reference(chart_sheet, min_col=2, min_row=2, max_row=18)
-    bar_chart.add_data(data, titles_from_data=True)
-    bar_chart.set_categories(categories)
-    bar_chart.title = "Training Hours by Employee"
-    chart_sheet.add_chart(bar_chart, "L1")
+    # Check for charts in 'Workplace Productivity'
+    wp_charts = [chart for chart in wp_sheet._charts]
+    has_digital_skills_chart = any(chart.title == "Digital Skills Scores by Department" for chart in wp_charts)
+    has_training_output_chart = any(chart.title == "Hours of Training Completed and Reported Weekly Output" for chart in wp_charts)
+    checklist_data["Completed"].append("Yes" if has_digital_skills_chart and has_training_output_chart else "No")
 
-    # Pie chart for Tasks Completed
-    pie_chart = PieChart()
-    data = Reference(chart_sheet, min_col=5, min_row=1, max_row=18)
-    categories = Reference(chart_sheet, min_col=2, min_row=2, max_row=18)
-    pie_chart.add_data(data, titles_from_data=True)
-    pie_chart.set_categories(categories)
-    pie_chart.title = "Tasks Completed Distribution"
-    chart_sheet.add_chart(pie_chart, "L16")
+    # Check 'Department Distribution' table and chart
+    table_correct = dd_sheet.cell(row=1, column=1).value == 'Department' and dd_sheet.cell(row=1, column=2).value == 'Number of Employees'
+    pie_chart_correct = any(chart.title == "Department Distribution" for chart in dd_sheet._charts)
+    checklist_data["Completed"].append("Yes" if table_correct and pie_chart_correct else "No")
 
-    # Create a new sheet for Department Analysis
-    dept_sheet = workbook["Department Distribution"]
+    # Check data completeness
+    data_complete = all(all(wp_sheet.cell(row=row, column=col).value is not None for col in range(1, 12)) for row in range(2, 18))
+    checklist_data["Completed"].append("Yes" if data_complete else "No")
 
-    # Calculate number of employees by department
-    departments = {}
-    for row in range(2, 19):
-        dept = sheet.cell(row=row, column=3).value
-        departments[dept] = departments.get(dept, 0) + 1
+    # Check summary row accuracy
+    average_calculated = sum(wp_sheet.cell(row=row, column=3).value for row in range(2, 18)) / 15
+    summary_correct = abs(average_calculated - wp_sheet['C18'].value) < 0.1
+    checklist_data["Completed"].append("Yes" if summary_correct else "No")
 
-    for dept, count in departments.items():
-        dept_sheet.append([dept, count])
+    # Check sorting
+    sorted_correctly = all(wp_sheet.cell(row=i, column=1).value < wp_sheet.cell(row=i + 1, column=1).value for i in range(2, 17))
+    checklist_data["Completed"].append("Yes" if sorted_correctly else "No")
 
-    # Create a pie chart for Department Analysis
-    pie_chart_dept = PieChart()
-    data = Reference(dept_sheet, min_col=2, min_row=2, max_row=len(departments) + 1)
-    categories = Reference(dept_sheet, min_col=1, min_row=2, max_row=len(departments) + 1)
-    pie_chart_dept.add_data(data, titles_from_data=True)
-    pie_chart_dept.set_categories(categories)
-    pie_chart_dept.title = "Department Distribution"
-    dept_sheet.add_chart(pie_chart_dept, "E5")
+    # Check formatting and alignment
+    consistent_formatting = all(
+        wp_sheet.cell(row=1, column=col).alignment.horizontal == 'center' and
+        wp_sheet.cell(row=1, column=col).font.bold for col in range(1, 12)
+    )
+    checklist_data["Completed"].append("Yes" if consistent_formatting else "No")
 
-    # Return checklist data as a success message or result
-    checklist_data = {"status": "Workbook processed successfully"}
+    # Check color-coded training requirements
+    color_coded = any(
+        wp_sheet.cell(row=row, column=11).fill is not None for row in range(2, 18)
+    )
+    checklist_data["Completed"].append("Yes" if color_coded else "No")
+
     return checklist_data
+
+# Example usage
+# workbook = load_workbook('example.xlsx')
+# results = check_workbook(workbook)
+# print(results)
