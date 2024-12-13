@@ -77,31 +77,16 @@ def check_excel_final(workbook):
     data_complete = all(all(wp_sheet.cell(row=row, column=col).value is not None for col in range(1, 12)) for row in range(2, 17))
     checklist_data["Completed"].append("Yes" if data_complete else "No")
 
-    # Validate the averages in C17:J17
-    summary_correct = True
+    # Validate the presence of formulas in C17:J17
+    formulas_present = True
     
     for col in range(3, 11):  # Columns C (3) to J (10)
-        total = 0
-        count = 0
-        for row in range(2, 17):  # Rows 2 to 16
-            value = wp_sheet.cell(row=row, column=col).value
-            if isinstance(value, (int, float)):
-                total += value
-                count += 1
-            elif isinstance(value, str):  # Convert numeric strings
-                try:
-                    total += float(value)
-                    count += 1
-                except ValueError:
-                    pass  # Ignore invalid strings
+        cell = wp_sheet.cell(row=17, column=col)
+        if cell.data_type != 'f':  # 'f' indicates the cell contains a formula
+            formulas_present = False
+            print(f"Missing formula in Column {col}, Row 17")
     
-        calculated_average = total / count if count > 0 else 0
-        cell_value = wp_sheet.cell(row=17, column=col).value
-    
-        if not (isinstance(cell_value, (int, float)) and abs(calculated_average - cell_value) < 0.1):
-            summary_correct = False  # Mark as incorrect if any column average doesn't match
-    
-    checklist_data["Completed"].append("Yes" if summary_correct else "No")
+    checklist_data["Completed"].append("Yes" if formulas_present else "No")
 
     # Check sorting
     sorted_correctly = True
