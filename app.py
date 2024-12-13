@@ -3,8 +3,7 @@ from utils.display import display_results
 from checkers.excel.excel_1 import check_excel_1
 from checkers.excel.excel_2 import check_excel_2
 from checkers.excel.excel_3 import check_excel_3
-from checkers.word.word_1 import check_word_1
-from checkers.powerpoint.ppt_1 import check_ppt_1
+from checkers.excel.excel_final import check_excel_final
 from openpyxl import load_workbook
 from docx import Document
 from pptx import Presentation
@@ -16,6 +15,7 @@ st.header("Excel Assignments")
 excel_1_file = st.file_uploader("Upload Excel_1", type=["xlsx"], key="excel_1")
 excel_2_file = st.file_uploader("Upload Excel_2", type=["xlsx"], key="excel_2")
 excel_3_file = st.file_uploader("Upload Excel_3", type=["xlsx"], key="excel_3")
+excel_final_file = st.file_uploader("Upload Excel_Final", type=["xlsx"], key="excel_final")
 
 # Word Section
 st.header("Word Assignments")
@@ -53,10 +53,22 @@ if excel_3_file:
     except Exception as e:
         st.error(f"An error occurred with Excel Assignment 3: {str(e)}")
 
+if excel_final_file:
+    try:
+        workbook = load_workbook(excel_final_file)
+        # Assuming a function named `check_excel_final` exists
+        from checkers.excel.excel_final import check_excel_final
+        checklist_data = check_excel_final(workbook)
+        st.subheader("Excel Final Assignment Results")
+        display_results(checklist_data)
+    except Exception as e:
+        st.error(f"An error occurred with Excel Final Assignment: {str(e)}")
+
 # Word Checker
 if word_1_file:
     try:
         doc = Document(word_1_file)
+        from checkers.word.word_1 import check_word_1
         checklist_data = check_word_1(doc)
         st.subheader("Word Assignment 1 Results")
         display_results(checklist_data)
@@ -67,6 +79,7 @@ if word_1_file:
 if ppt_1_file:
     try:
         prs = Presentation(ppt_1_file)
+        from checkers.powerpoint.ppt_1 import check_ppt_1
         checklist_data = check_ppt_1(prs)
         st.subheader("PowerPoint Assignment 1 Results")
         display_results(checklist_data)
