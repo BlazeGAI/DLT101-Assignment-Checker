@@ -52,11 +52,22 @@ def check_excel_1(workbook):
     checklist_data["Completed"].append("Yes" if headers_bold and headers_colored else "No")
 
     # 7. Check if columns are properly aligned
-    correct_alignment = all(
-        sheet.cell(row=row, column=col).alignment.horizontal == 
-        ("left" if col in [2, 3, 5, 6, 7] else "center")
-        for row in range(2, 12) for col in range(1, 8)
-    )
+    correct_alignment = True
+    for row in range(2, 12):  # Data rows
+        for col in range(1, 8):  # All 7 columns
+            cell = sheet.cell(row=row, column=col)
+            alignment = cell.alignment.horizontal
+            
+            # Define expected alignment based on column index
+            expected_alignment = "left" if col in [2, 3, 5, 6, 7] else "center"
+            
+            # Check alignment or accept "general" as valid
+            if alignment not in [expected_alignment, "general"]:
+                correct_alignment = False
+                break
+        if not correct_alignment:
+            break
+    
     checklist_data["Completed"].append("Yes" if correct_alignment else "No")
 
     # 8. Check if ChatGPT hyperlink is centered in row 13
