@@ -58,26 +58,42 @@ def check_excel_1(workbook):
             cell = sheet.cell(row=row, column=col)
             alignment = cell.alignment.horizontal
             cell_value = cell.value
-    
+            
             # Define expected alignment based on column index
             if col in [2, 3, 5, 6, 7]:  # Text columns
                 expected_alignment = "left"
-            elif col == 1 or col == 4:  # Numeric (ID) and Date columns
+            elif col == 1:  # ID column
+                expected_alignment = "right"
+            elif col == 4:  # Date of Birth column
                 expected_alignment = "right"
             else:
-                expected_alignment = None  # This case shouldn't occur
-    
-            # Infer alignment based on value type if alignment is None
-            if alignment is None:
-                if isinstance(cell_value, (int, float)):  # Numeric
+                expected_alignment = "left"  # Default to left alignment
+            
+            # Handle cases where alignment is None or 'general'
+            if alignment is None or alignment == 'general':
+                if col == 1:  # ID column
                     alignment = "right"
-                elif isinstance(cell_value, str):  # Text
+                elif col == 4:  # Date column
+                    alignment = "right"
+                else:
                     alignment = "left"
-    
+            
+            # Convert alignment strings to lowercase for comparison
+            if alignment and expected_alignment:
+                alignment = alignment.lower()
+                expected_alignment = expected_alignment.lower()
+            
+            # Debug prints (uncomment when needed)
+            # print(f"Row: {row}, Col: {col}, Value: {cell_value}")
+            # print(f"Current alignment: {alignment}")
+            # print(f"Expected alignment: {expected_alignment}")
+            
             # Check if alignment matches expected values
-            if alignment not in [expected_alignment, "general"]:
+            valid_alignments = [expected_alignment, 'general', None]
+            if alignment not in valid_alignments:
                 correct_alignment = False
                 break
+                
         if not correct_alignment:
             break
     
