@@ -57,19 +57,25 @@ def check_excel_1(workbook):
         for col in range(1, 8):  # All 7 columns
             cell = sheet.cell(row=row, column=col)
             alignment = cell.alignment.horizontal
+            cell_value = cell.value
     
             # Define expected alignment based on column index
-            if row == 1:  # Header row
-                expected_alignment = "center"
-            elif col in [2, 3, 5, 6, 7]:  # Text columns
+            if col in [2, 3, 5, 6, 7]:  # Text columns
                 expected_alignment = "left"
             elif col == 1 or col == 4:  # Numeric (ID) and Date columns
                 expected_alignment = "right"
             else:
-                expected_alignment = None  # This case shouldn't occur but ensures robustness
+                expected_alignment = None  # This case shouldn't occur
+    
+            # Infer alignment based on value type if alignment is None
+            if alignment is None:
+                if isinstance(cell_value, (int, float)):  # Numeric
+                    alignment = "right"
+                elif isinstance(cell_value, str):  # Text
+                    alignment = "left"
     
             # Check if alignment matches expected values
-            if alignment not in [expected_alignment, "general"]:  # Accept "general" if explicit alignment is missing
+            if alignment not in [expected_alignment, "general"]:
                 correct_alignment = False
                 break
         if not correct_alignment:
