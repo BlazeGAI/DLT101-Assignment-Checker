@@ -59,16 +59,20 @@ def check_excel_1(workbook):
             alignment = cell.alignment.horizontal
             
             # Define expected alignment based on column index
-            expected_alignment = "left" if col in [2, 3, 5, 6, 7] else "center"
+            if col in [2, 3, 5, 6, 7]:  # Left-aligned columns
+                expected_alignments = ["left", "general"]
+            else:  # Center-aligned columns (1 and 4)
+                expected_alignments = ["center", "general"]
             
-            # Check alignment or accept "general" as valid
-            if alignment not in [expected_alignment, "general"]:
+            # Check if alignment matches expected values
+            if alignment not in expected_alignments:
                 correct_alignment = False
                 break
         if not correct_alignment:
             break
     
     checklist_data["Completed"].append("Yes" if correct_alignment else "No")
+
 
     # 8. Check if ChatGPT hyperlink is centered in row 13
     center_aligned = sheet['A13'].alignment.horizontal == 'center'
