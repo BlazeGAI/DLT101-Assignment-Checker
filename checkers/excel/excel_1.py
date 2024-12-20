@@ -77,8 +77,6 @@ def check_excel_1(workbook):
     
     checklist_data["Completed"].append("Yes" if correct_alignment else "No")
 
-
-
     # 8. Check if ChatGPT hyperlink is centered in row 13
     center_aligned = sheet['A13'].alignment.horizontal == 'center'
     checklist_data["Completed"].append("Yes" if center_aligned else "No")
