@@ -28,28 +28,25 @@ def check_word_1(doc):
     paragraphs = doc.paragraphs
     
     # Check table existence and structure
-    if len(tables) > 0 and len(tables[0].rows) == 1 and len(tables[0].columns) == 2:
-        checklist_data["Completed"].append("Yes")
-        first_cell = tables[0].cell(0, 0).text.strip()
-        second_cell = tables[0].cell(0, 1).text.strip()
+    checklist_data["Completed"].append("Yes" if len(tables) > 0 and len(tables[0].rows) == 1 and len(tables[0].columns) == 2 else "No")
+    
+    if len(tables) > 0:
+        first_cell_text = tables[0].cell(0, 0).text.strip()
+        second_cell_text = tables[0].cell(0, 1).text.strip()
         
         # Check first cell formatting
-        correct_format = False
-        for run in tables[0].cell(0, 0).paragraphs[0].runs:
-            if run.bold and run.font.size == Pt(14):
-                correct_format = True
-                break
+        correct_format = any(run.bold and run.font.size == Pt(14) for run in tables[0].cell(0, 0).paragraphs[0].runs)
         checklist_data["Completed"].append("Yes" if correct_format else "No")
         
         # Check second cell alignment
         alignment = tables[0].cell(0, 1).paragraphs[0].alignment
         checklist_data["Completed"].append("Yes" if alignment == WD_ALIGN_PARAGRAPH.RIGHT else "No")
+        
+        # Check table borders
+        no_borders = all(cell._element.xpath('.//w:tcBorders') == [] for row in tables[0].rows for cell in row.cells)
+        checklist_data["Completed"].append("Yes" if no_borders else "No")
     else:
         checklist_data["Completed"].extend(["No", "No", "No"])
-    
-    # Check if table borders are removed
-    no_borders = all(cell._element.xpath('.//w:tcBorders') == [] for row in tables[0].rows for cell in row.cells)
-    checklist_data["Completed"].append("Yes" if no_borders else "No")
     
     # Check empty paragraphs above "Today's Date"
     paragraph_texts = [p.text.strip() for p in paragraphs]
@@ -61,14 +58,11 @@ def check_word_1(doc):
     has_bullets = any(p.style.name.startswith("List") for p in paragraphs if "free Classic Cars Club" in p.text.lower())
     checklist_data["Completed"].append("Yes" if has_bullets else "No")
     
-    # Verify three-column table structure and widths
-    if len(tables) > 1 and len(tables[1].columns) == 3:
-        checklist_data["Completed"].append("Yes")  # Table exists
-    else:
-        checklist_data["Completed"].append("No")
+    # Verify three-column table structure
+    checklist_data["Completed"].append("Yes" if len(tables) > 1 and len(tables[1].columns) == 3 else "No")
     
-    # Verify sorting criteria
-    checklist_data["Completed"].append("Manual Check Required")  # Sorting is not easily checked programmatically
+    # Verify sorting criteria (Manual Check Required)
+    checklist_data["Completed"].append("Manual Check Required")
     
     # Check header row merging and formatting
     if len(tables) > 1 and len(tables[1].rows) > 0:
@@ -79,14 +73,14 @@ def check_word_1(doc):
     else:
         checklist_data["Completed"].append("No")
     
-    # Verify border settings
-    checklist_data["Completed"].append("Manual Check Required")  # Border settings need visual inspection
+    # Verify border settings (Manual Check Required)
+    checklist_data["Completed"].append("Manual Check Required")
     
-    # Verify shading settings
-    checklist_data["Completed"].append("Manual Check Required")  # Shading needs visual inspection
+    # Verify shading settings (Manual Check Required)
+    checklist_data["Completed"].append("Manual Check Required")
     
-    # Verify bottom border formatting
-    checklist_data["Completed"].append("Manual Check Required")  # Border formatting needs visual inspection
+    # Verify bottom border formatting (Manual Check Required)
+    checklist_data["Completed"].append("Manual Check Required")
     
     # Verify bold formatting for row 2
     if len(tables) > 1 and len(tables[1].rows) > 1:
