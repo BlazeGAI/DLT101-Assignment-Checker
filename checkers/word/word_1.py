@@ -71,10 +71,13 @@ def check_word_1(doc):
     checklist_data["Completed"].append("Manual Check Required")  # Sorting is not easily checked programmatically
     
     # Check header row merging and formatting
-    header_merged = len(tables[1].rows[0].cells) == 1
-    header_text = tables[1].rows[0].cells[0].text.strip()
-    correct_header_format = any(run.bold and run.font.size == Pt(14) for run in tables[1].rows[0].cells[0].paragraphs[0].runs)
-    checklist_data["Completed"].append("Yes" if header_merged and header_text == "Available Partner Discounts" and correct_header_format else "No")
+    if len(tables) > 1 and len(tables[1].rows) > 0:
+        header_merged = len(tables[1].rows[0].cells) == 1
+        header_text = tables[1].rows[0].cells[0].text.strip()
+        correct_header_format = any(run.bold and run.font.size == Pt(14) for run in tables[1].rows[0].cells[0].paragraphs[0].runs)
+        checklist_data["Completed"].append("Yes" if header_merged and header_text == "Available Partner Discounts" and correct_header_format else "No")
+    else:
+        checklist_data["Completed"].append("No")
     
     # Verify border settings
     checklist_data["Completed"].append("Manual Check Required")  # Border settings need visual inspection
@@ -86,7 +89,10 @@ def check_word_1(doc):
     checklist_data["Completed"].append("Manual Check Required")  # Border formatting needs visual inspection
     
     # Verify bold formatting for row 2
-    bold_correct = all(any(run.bold for run in cell.paragraphs[0].runs) for cell in tables[1].rows[1].cells)
-    checklist_data["Completed"].append("Yes" if bold_correct else "No")
+    if len(tables) > 1 and len(tables[1].rows) > 1:
+        bold_correct = all(any(run.bold for run in cell.paragraphs[0].runs) for cell in tables[1].rows[1].cells)
+        checklist_data["Completed"].append("Yes" if bold_correct else "No")
+    else:
+        checklist_data["Completed"].append("No")
     
     return checklist_data
