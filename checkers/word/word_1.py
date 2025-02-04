@@ -49,7 +49,7 @@ def check_word_1(doc):
         checklist_data["Completed"].extend(["No", "No", "No"])
     
     # Check if table borders are removed
-    no_borders = all(cell._element.xpath('.//w:tcBorders', namespaces=nsdecls('w')) == [] for row in tables[0].rows for cell in row)
+    no_borders = all(cell._element.xpath('.//w:tcBorders', namespaces=nsdecls('w')) == [] for row in tables[0].rows for cell in row.cells)
     checklist_data["Completed"].append("Yes" if no_borders else "No")
     
     # Check empty paragraphs above "Today's Date"
