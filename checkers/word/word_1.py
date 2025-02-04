@@ -2,7 +2,6 @@ from docx import Document
 from docx.shared import Pt
 from docx.enum.text import WD_ALIGN_PARAGRAPH
 from docx.oxml import parse_xml
-from docx.oxml.ns import nsdecls
 
 def check_word_1(doc):
     checklist_data = {
@@ -49,7 +48,7 @@ def check_word_1(doc):
         checklist_data["Completed"].extend(["No", "No", "No"])
     
     # Check if table borders are removed
-    no_borders = all(cell._element.xpath('.//w:tcBorders', namespaces=nsdecls('w')) == [] for row in tables[0].rows for cell in row.cells)
+    no_borders = all(cell._element.xpath('.//w:tcBorders') == [] for row in tables[0].rows for cell in row.cells)
     checklist_data["Completed"].append("Yes" if no_borders else "No")
     
     # Check empty paragraphs above "Today's Date"
