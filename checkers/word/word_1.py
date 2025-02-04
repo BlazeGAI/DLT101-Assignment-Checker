@@ -4,7 +4,7 @@ from docx.enum.text import WD_ALIGN_PARAGRAPH
 from docx.oxml import parse_xml
 from docx.oxml.ns import nsdecls
 
-def check_welcome_letter(doc):
+def check_word_1(doc):
     checklist_data = {
         "Grading Criteria": [
             "Is there a 2-column by 1-row table above Today's Date?",
