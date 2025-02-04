@@ -13,7 +13,7 @@ def check_welcome_letter(doc):
             "Are all table borders removed?",
             "Are two empty paragraphs inserted above Today's Date?",
             "Are bullet points applied to the membership benefits list?",
-            "Is the three-column table correctly sized (1.5", 2.25", 1")?",
+            "Is the three-column table correctly sized (1.5\", 2.25\", 1\")?",
             "Is the table sorted by 'Locations' in ascending order?",
             "Is a new header row inserted and merged at the top of the table?",
             "Is the merged header cell text 'Available Partner Discounts' formatted as 14pt, Bold, and Centered?",
