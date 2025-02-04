@@ -30,7 +30,6 @@ if word_1_file is not None:
     for criteria, status in zip(results["Grading Criteria"], results["Completed"]):
         st.write(f"{criteria}: {status}")
 
-
 # PowerPoint Section
 st.header("PowerPoint Assignments")
 ppt_1_file = st.file_uploader("Upload PowerPoint_1", type=["pptx"], key="ppt_1")
