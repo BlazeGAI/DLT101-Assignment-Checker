@@ -54,8 +54,8 @@ def check_word_1(doc):
     empty_paragraphs = paragraph_texts[index_date-2:index_date] if index_date >= 2 else []
     checklist_data["Completed"].append("Yes" if all(not p for p in empty_paragraphs) else "No")
     
-    # Check bullet formatting
-    has_bullets = any(p.style.name.startswith("List") for p in paragraphs if "free Classic Cars Club" in p.text.lower())
+    # Improved bullet point detection
+    has_bullets = any(any(r._element.findall('.//w:numPr') for r in p.runs) for p in paragraphs if "free Classic Cars Club" in p.text.lower())
     checklist_data["Completed"].append("Yes" if has_bullets else "No")
     
     # Verify three-column table structure
@@ -66,7 +66,7 @@ def check_word_1(doc):
     
     # Check header row merging and formatting
     if len(tables) > 1 and len(tables[1].rows) > 0:
-        header_merged = len(tables[1].rows[0].cells) == 1
+        header_merged = len(set(len(cell._element.xpath('.//w:vMerge')) for cell in tables[1].rows[0].cells)) == 1
         header_text = tables[1].rows[0].cells[0].text.strip()
         correct_header_format = any(run.bold and run.font.size == Pt(14) for run in tables[1].rows[0].cells[0].paragraphs[0].runs)
         checklist_data["Completed"].append("Yes" if header_merged and header_text == "Available Partner Discounts" and correct_header_format else "No")
