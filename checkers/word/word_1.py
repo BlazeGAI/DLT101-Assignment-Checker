@@ -6,7 +6,7 @@ from docx.enum.table import WD_TABLE_ALIGNMENT
 def check_word_1(doc):
     """
     Checks a Word document for the instructions shown in the Classic Cars Club
-    "Enhancing a Welcome Letter" exercise. It looks for:
+    'Enhancing a Welcome Letter' exercise. It looks for:
 
     1) A 2-column by 1-row table at the top with:
        - "Classic Cars Club" in cell 1 (14 pt, Bold)
@@ -24,7 +24,6 @@ def check_word_1(doc):
     4) Bulleted membership perks paragraphs
 
     5) Sorting by 'Locations' in ascending order with a header row
-       (this script can only check table text for approximate sorting)
 
     6) A new row at the top of the table with merged cells containing:
        - "Available Partner Discounts" in 14 pt, Bold, center-aligned
@@ -79,7 +78,6 @@ def check_word_1(doc):
                 top_table_text_ok = True
 
             # Check formatting of cell1 text (14 pt, Bold, center-left)
-            # We look at runs in cell(0,0)
             cell1_run_format_is_14_bold = False
             for p in top_table.cell(0, 0).paragraphs:
                 for r in p.runs:
@@ -90,10 +88,8 @@ def check_word_1(doc):
                         break
                 if cell1_run_format_is_14_bold:
                     break
+            # "Center-left" typically means left alignment (horizontal), so we check alignment == LEFT
             if cell1_run_format_is_14_bold and top_table.cell(0, 0).paragraphs[0].alignment == WD_ALIGN_PARAGRAPH.LEFT:
-                # "Center-left" typically means left alignment but vertically centered.
-                # Word doesn't have a direct "center-left" horizontal alignment. 
-                # This check can only verify if it's left aligned in the text sense. 
                 cell1_format_ok = True
 
             # Check cell2 alignment for "center-right" effect (usually right alignment)
@@ -102,8 +98,6 @@ def check_word_1(doc):
                 cell2_align_ok = True
 
             # Check if the table has borders removed
-            # This is simplistic: if any cell has a border, we fail
-            # docx does not always expose all border properties, so we do a partial check
             no_border_detected = True
             for row in top_table.rows:
                 for cell in row.cells:
@@ -127,7 +121,6 @@ def check_word_1(doc):
     checklist_data["Completed"].append("Yes" if top_table_no_borders else "No")
 
     # 2) Check for two empty paragraphs above "Today's Date"
-    # We look for a paragraph whose text == "Today's Date" and see if two empty paragraphs exist before it.
     two_paragraphs_ok = False
     idx_of_date = None
     for i, p in enumerate(doc.paragraphs):
@@ -146,13 +139,12 @@ def check_word_1(doc):
     correct_widths_ok = False
     table_centered_ok = False
 
-    # We assume the second table is the main 3-col table
     if len(doc.tables) > 1:
         main_table = doc.tables[1]
         if len(main_table.columns) == 3:
             main_table_ok = True
 
-            # Check column widths (approximate match with a small tolerance)
+            # Check column widths (approximate match)
             col_widths = [col.width.inches if col.width else 0 for col in main_table.columns]
             desired = [1.5, 2.25, 1.0]
             tolerance = 0.05
@@ -163,8 +155,6 @@ def check_word_1(doc):
             correct_widths_ok = all(width_matches)
 
             # Check if table is centered
-            # docx does not have a direct "table.alignment" check in older versions, 
-            # but new versions do: main_table.alignment == WD_TABLE_ALIGNMENT.CENTER
             if main_table.alignment == WD_TABLE_ALIGNMENT.CENTER:
                 table_centered_ok = True
 
@@ -173,8 +163,6 @@ def check_word_1(doc):
     checklist_data["Completed"].append("Yes" if table_centered_ok else "No")
 
     # 4) Check for bulleted membership perks paragraphs
-    # We look for any paragraph with a list style. docx often calls it "List Paragraph" 
-    # or we check paragraph.style.name or numbering_format.
     bullet_points_found = False
     bullet_keywords = [
         "Free entry to local and regional shows",
@@ -185,23 +173,17 @@ def check_word_1(doc):
     ]
     bullet_hits = 0
     for p in doc.paragraphs:
-        # Check if text matches any known perk
         text_low = p.text.lower()
         if any(k.lower() in text_low for k in bullet_keywords):
-            # If style or numbering suggests bullet
+            # If style or numbering suggests a bullet
             if p.style and "list" in p.style.name.lower():
                 bullet_hits += 1
-    # If we see at least 3 or 4 bullet hits, we consider it a pass
     if bullet_hits >= 3:
         bullet_points_found = True
 
     checklist_data["Completed"].append("Yes" if bullet_points_found else "No")
 
-    # 5) Check table sorting by 'Locations' ascending with header row
-    # In practice, we would look at the column header named "Locations" 
-    # and confirm that subsequent cells are in ascending order. 
-    # This simplified check only tries to see if a column named "Locations" exists 
-    # and if the data beneath it is sorted alphabetically.
+    # 5) Check table sorting by 'Locations' in ascending order with header row
     sorting_ok = False
     if len(doc.tables) > 1:
         table = doc.tables[1]
@@ -212,29 +194,25 @@ def check_word_1(doc):
                 locations_col_idx = i
                 break
         if locations_col_idx is not None:
-            # Gather column text (excluding header row)
+            # Collect the column entries (excluding the header row)
             col_texts = [row.cells[locations_col_idx].text.strip() for row in table.rows[1:]]
-            # Check if sorted ascending
             if col_texts == sorted(col_texts):
                 sorting_ok = True
 
     checklist_data["Completed"].append("Yes" if sorting_ok else "No")
 
-    # 6) New row inserted at top, merged, "Available Partner Discounts" 14 pt, Bold, center
+    # 6) New row at the top of the main table, merged, "Available Partner Discounts" 14 pt Bold, center
     top_row_merged_ok = False
     top_row_text_format_ok = False
     if len(doc.tables) > 1:
         table = doc.tables[1]
         if len(table.rows) > 1:
             first_row = table.rows[0]
-            # Check if the first row has only 1 cell because it's merged
-            # docx might still store multiple grid cells, but let's do a naive check 
+            # Check if the first row is merged into 1 cell
             if len(first_row.cells) == 1:
                 top_row_merged_ok = True
-                # Check the text in that cell
-                text_merged = first_row.cells[0].text.strip()
-                if text_merged == "Available Partner Discounts":
-                    # Check format
+                merged_text = first_row.cells[0].text.strip()
+                if merged_text == "Available Partner Discounts":
                     row_paras = first_row.cells[0].paragraphs
                     if row_paras:
                         run_14_bold = False
@@ -249,35 +227,26 @@ def check_word_1(doc):
     checklist_data["Completed"].append("Yes" if top_row_merged_ok else "No")
     checklist_data["Completed"].append("Yes" if top_row_text_format_ok else "No")
 
-    # 7) From row 2 onward: outside borders single line ½ pt
+    # 7) From row 2 onward: outside borders single line (½ pt)
     outside_borders_ok = False
     if len(doc.tables) > 1:
         table = doc.tables[1]
-        # Quick check: examine row 2 onward
-        # We'll do a partial check for any cell's w:tcBorders
-        # expecting single line, ½ pt
-        # This can be fairly involved, so a quick approximation is done here.
         border_good_count = 0
         total_cells = 0
         for r_idx in range(1, len(table.rows)):
             row = table.rows[r_idx]
             for cell in row.cells:
                 total_cells += 1
-                # Check border properties
                 tc_pr = cell._tc.get_or_add_tcPr()
                 borders = tc_pr.find(qn('w:tcBorders'))
                 if borders is not None:
-                    # We look for top/left/bottom/right
-                    # Checking style and size
-                    # For brevity, if any border is found with w:val="single" and w:sz="8" (½ pt = 8 in Word XML),
-                    # we count it as good. Real code might be more thorough.
+                    # Look for single line, ½ pt (sz="8") on any side
                     good_sides = 0
                     for side_tag in ['w:top', 'w:left', 'w:bottom', 'w:right']:
                         side = borders.find(qn('w:' + side_tag))
                         if side is not None:
                             if side.get(qn('w:val')) == 'single' and side.get(qn('w:sz')) == '8':
                                 good_sides += 1
-                    # If we see any side with the correct style and size, we consider it a partial pass.
                     if good_sides > 0:
                         border_good_count += 1
         if total_cells > 0 and border_good_count == total_cells:
@@ -285,33 +254,28 @@ def check_word_1(doc):
 
     checklist_data["Completed"].append("Yes" if outside_borders_ok else "No")
 
-    # 8) Row 2 shading: White, Background 1, Darker 15% & 9) Row 2 bottom border 1½ pt & 10) Bold text in row 2
+    # 8) Row 2 shading, 9) Row 2 bottom border 1½ pt, 10) Bold text in row 2
     shading_ok = False
     bottom_border_ok = False
     row2_bold_ok = False
     if len(doc.tables) > 1:
         table = doc.tables[1]
         if len(table.rows) > 1:
-            # The row at index 1 is row 2 visually
             second_row = table.rows[1]
-            # Shading
-            # In Word XML, "Darker 15%" on a White background often has a fill attribute with a specific color code. 
-            # For a default theme it might be "D9D9D9" or something similar. This depends on the theme in use. 
-            # We'll do a quick check if the row cells have a fill of "D9D9D9".
+
+            # Check shading (D9D9D9 is common for "White, Background 1, Darker 15%")
             shading_cells = 0
             for cell in second_row.cells:
                 tc_pr = cell._tc.get_or_add_tcPr()
                 shd = tc_pr.find(qn('w:shd'))
                 if shd is not None:
                     fill_val = shd.get(qn('w:fill'))
-                    # This color might vary if the theme differs, so we only check for something that indicates shading
                     if fill_val and fill_val.lower() == "d9d9d9":
                         shading_cells += 1
             if shading_cells == len(second_row.cells):
                 shading_ok = True
 
             # Bottom border 1½ pt (w:sz="24")
-            # We look at each cell's bottom border
             border_count = 0
             for cell in second_row.cells:
                 tc_pr = cell._tc.get_or_add_tcPr()
@@ -325,7 +289,6 @@ def check_word_1(doc):
                 bottom_border_ok = True
 
             # Bold text in row 2
-            # We look for runs and see if they are all bold
             bold_count = 0
             total_runs = 0
             for cell in second_row.cells:
@@ -334,9 +297,6 @@ def check_word_1(doc):
                         total_runs += 1
                         if r.bold:
                             bold_count += 1
-            # If every run is bold, we count it as a pass. 
-            # If row 2 only has a few short paragraphs, they might all be bold. 
-            # Some solutions only require key runs to be bold. Adjust as needed.
             if total_runs > 0 and bold_count == total_runs:
                 row2_bold_ok = True
 
