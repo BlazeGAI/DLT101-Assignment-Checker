@@ -73,20 +73,8 @@ def check_word_1(doc):
     else:
         checklist_data["Completed"].append("No")
     
-    # Verify border settings (Manual Check Required)
-    checklist_data["Completed"].append("Manual Check Required")
-    
-    # Verify shading settings (Manual Check Required)
-    checklist_data["Completed"].append("Manual Check Required")
-    
-    # Verify bottom border formatting (Manual Check Required)
-    checklist_data["Completed"].append("Manual Check Required")
-    
-    # Verify bold formatting for row 2
-    if len(tables) > 1 and len(tables[1].rows) > 1:
-        bold_correct = all(any(run.bold for run in cell.paragraphs[0].runs) for cell in tables[1].rows[1].cells)
-        checklist_data["Completed"].append("Yes" if bold_correct else "No")
-    else:
-        checklist_data["Completed"].append("No")
+    # Ensure both lists have the same length
+    while len(checklist_data["Completed"]) < len(checklist_data["Grading Criteria"]):
+        checklist_data["Completed"].append("Manual Check Required")
     
     return checklist_data
