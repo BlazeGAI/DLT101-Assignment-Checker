@@ -4,6 +4,7 @@ from checkers.excel.excel_1 import check_excel_1
 from checkers.excel.excel_2 import check_excel_2
 from checkers.excel.excel_3 import check_excel_3
 from checkers.excel.excel_final import check_excel_final
+from checkers.word.word_1 import check_word_1
 from openpyxl import load_workbook
 from docx import Document
 from pptx import Presentation
@@ -20,6 +21,15 @@ excel_final_file = st.file_uploader("Upload Excel_Final", type=["xlsx"], key="ex
 # Word Section
 st.header("Word Assignments")
 word_1_file = st.file_uploader("Upload Word_1", type=["docx"], key="word_1")
+
+if word_1_file is not None:
+    doc = Document(word_1_file)
+    results = check_word_1(doc)
+
+    # Display results
+    for criteria, status in zip(results["Grading Criteria"], results["Completed"]):
+        st.write(f"{criteria}: {status}")
+
 
 # PowerPoint Section
 st.header("PowerPoint Assignments")
