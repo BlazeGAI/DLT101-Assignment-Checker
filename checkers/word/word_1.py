@@ -1,9 +1,7 @@
 from docx.shared import Pt
 from docx.enum.text import WD_ALIGN_PARAGRAPH
-from docx.enum.style import WD_STYLE_TYPE
-from docx.oxml.ns import qn
 
-def check_word_1(doc):
+def check_word_document(doc):
     """
     Checks formatting of a Word document.
 
@@ -29,7 +27,7 @@ def check_word_1(doc):
     try:
         # 1. Check font and size
         correct_font = True
-        for i, paragraph in enumerate(doc.paragraphs):
+        for paragraph in doc.paragraphs:
             if not paragraph.text.strip():
                 continue
             if paragraph.style.name not in ['Title', 'Heading 1']:
@@ -41,11 +39,11 @@ def check_word_1(doc):
 
                     if font_name != 'Times New Roman' or font_size != Pt(12):
                         correct_font = False
-                        break
-                if not correct_font:  # Exit outer loop if font is incorrect
-                    break
-        results[0]["Completed"] = "Yes" if correct_font else "No"
+                        break  # Exit inner loop
+                if not correct_font:
+                    break  # Exit outer loop
 
+        results[0]["Completed"] = "Yes" if correct_font else "No"
 
         # 2. Check line spacing
         correct_spacing = all(
@@ -55,13 +53,12 @@ def check_word_1(doc):
         results[1]["Completed"] = "Yes" if correct_spacing else "No"
 
         # 3. Check margins
-        sections = doc.sections
         correct_margins = all(
             section.left_margin.inches == 1 and
             section.right_margin.inches == 1 and
             section.top_margin.inches == 1 and
             section.bottom_margin.inches == 1
-            for section in sections
+            for section in doc.sections
         )
         results[2]["Completed"] = "Yes" if correct_margins else "No"
 
@@ -72,20 +69,22 @@ def check_word_1(doc):
                          not any(run.bold for run in title_paragraph.runs))
         results[3]["Completed"] = "Yes" if title_centered else "No"
 
-        # 5. Check indentation (simplified)
-        results[4]["Completed"] = "Yes"  # Default to Yes for now
+        # 5. Check indentation (simplified - needs more robust logic)
+        results[4]["Completed"] = "Yes"  # Placeholder - Implement proper indentation check
 
-        # 6. Count paragraphs
+        # 6. Count paragraphs (body paragraphs, excluding title/header)
         body_paragraphs = []
-        header_done = False
+        header_done = False  # Flag to indicate if we've passed the header
 
         for p in doc.paragraphs:
             text = p.text.strip()
             if not text:
-                continue
-            if not header_done and len(text) > 100:
-                header_done = True
-            if header_done and len(text) > 100:
+                continue  # Skip empty paragraphs
+
+            if not header_done and len(text) > 50:  # Heuristic for header length
+                header_done = True  # Assume we're past the header
+
+            if header_done and len(text) > 50:  # Consider only longer paragraphs
                 body_paragraphs.append(text)
 
         results[5]["Completed"] = "Yes" if len(body_paragraphs) >= 3 else "No"
@@ -94,26 +93,37 @@ def check_word_1(doc):
         has_references = False
         references_content = False
         for p in doc.paragraphs:
-            text = p.text.strip()
-            if text.lower() == 'references':
+            text = p.text.strip().lower()  # Case-insensitive check
+            if text == 'references':
                 has_references = True
-            elif has_references and text and '(' in text and ')' in text:
+            elif has_references and text and '(' in text and ')' in text and any(str(year) in text for year in range(1900, 2025)): #Check for years to avoid false positives
                 references_content = True
-                break
+                break  # Exit loop once references content is found
+
         results[6]["Completed"] = "Yes" if (has_references and references_content) else "No"
 
         # 8. Check citations
         has_citations = any(
-            '(' in para and ')' in para and
-            any(str(year) in para for year in range(1900, 2025))
+            '(' in para and ')' in para and any(str(year) in para for year in range(1900,2025))
             for para in body_paragraphs
         )
         results[7]["Completed"] = "Yes" if has_citations else "No"
 
     except Exception as e:
-        for result in results: # Add error to all criteria
+        for result in results:
             result["Debug"] = f"Error during checking: {str(e)}"
-        # You could also choose to only report the first error:
-        # results[0]["Debug"] = f"Error during checking: {str(e)}"
 
     return results
+
+
+
+# Example usage (replace with your actual document loading)
+# from docx import Document
+# doc = Document("your_document.docx")  # Replace with your document path
+# results = check_word_document(doc)
+
+# for item in results:
+#     print(f"Criterion: {item['Criterion']}")
+#     print(f"Completed: {item['Completed']}")
+#     print(f"Debug: {item['Debug']}")
+#     print("-" * 20)
