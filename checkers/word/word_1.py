@@ -17,22 +17,29 @@ def check_word_1(doc):
     }
 
     def is_correct_font(paragraph):
-        """Check if paragraph uses Times New Roman, 12pt font."""
+        """Check if the paragraph uses Times New Roman, 12pt font."""
+        paragraph_font = paragraph.style.font.name
+        paragraph_size = paragraph.style.font.size
+
         for run in paragraph.runs:
-            font_name = run.font.name or paragraph.style.font.name
-            font_size = run.font.size or paragraph.style.font.size
-            if font_name != 'Times New Roman' or font_size != Pt(12):
+            run_font = run.font.name or paragraph_font  # Use run font if set, otherwise fallback to paragraph
+            run_size = run.font.size or paragraph_size  # Use run size if set, otherwise fallback to paragraph
+            
+            if run_font != 'Times New Roman' or run_size != Pt(12):
                 return False
         return True
 
-    correct_font = all(is_correct_font(p) for p in doc.paragraphs if p.style.name not in ['Title', 'Heading 1'])
+    # Check if all paragraphs follow the correct font rule
+    correct_font = all(is_correct_font(p) for p in doc.paragraphs if p.text.strip())
     checklist_data["Completed"].append("Yes" if correct_font else "No")
 
+    # Check if line spacing is set to double (2.0)
     correct_spacing = all(
         p.paragraph_format.line_spacing in [None, 2.0] for p in doc.paragraphs if p.text.strip()
     )
     checklist_data["Completed"].append("Yes" if correct_spacing else "No")
 
+    # Check if margins are set to 1 inch on all sides
     correct_margins = all(
         section.left_margin.inches == 1 and
         section.right_margin.inches == 1 and
@@ -42,6 +49,7 @@ def check_word_1(doc):
     )
     checklist_data["Completed"].append("Yes" if correct_margins else "No")
 
+    # Check if title is centered and not bold
     title_paragraph = doc.paragraphs[0] if doc.paragraphs else None
     title_centered = (
         title_paragraph and 
@@ -50,6 +58,7 @@ def check_word_1(doc):
     )
     checklist_data["Completed"].append("Yes" if title_centered else "No")
 
+    # Count body paragraphs and detect References section
     body_paragraphs = []
     found_references = False
     header_done = False
@@ -66,18 +75,22 @@ def check_word_1(doc):
         if header_done and not found_references and len(text) > 100 and not text.lower().startswith('in conclusion'):
             body_paragraphs.append(text)
 
-    proper_indentation = True  # Placeholder, real indentation check can be added if needed
+    # Indentation check (placeholder, real indentation check can be added if needed)
+    proper_indentation = True  
     checklist_data["Completed"].append("Yes" if proper_indentation else "No")
 
+    # Check if there are at least 3 body paragraphs
     sufficient_paragraphs = len(body_paragraphs) >= 3
     checklist_data["Completed"].append("Yes" if sufficient_paragraphs else "No")
 
+    # Check if References section exists and contains at least one reference
     has_references = any(p.text.strip().lower() == 'references' for p in doc.paragraphs)
     references_content = any(
         has_references and '(' in p.text and ')' in p.text for p in doc.paragraphs
     )
     checklist_data["Completed"].append("Yes" if (has_references and references_content) else "No")
 
+    # Check for in-text citations
     has_citations = any(
         '(' in p and ')' in p and any(str(year) in p for year in range(1900, 2025))
         for p in body_paragraphs
