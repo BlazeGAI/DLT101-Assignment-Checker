@@ -3,6 +3,3 @@ pandas
 openpyxl
 python-docx
 python-pptx
-deepdiff
-lxml
-webcolors
